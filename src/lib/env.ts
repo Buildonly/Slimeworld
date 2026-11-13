@@ -19,6 +19,9 @@ const serverEnvSchema = z.object({
   NEXT_PUBLIC_PRIVY_APP_ID: z.string().min(1).optional(),
   PRIVY_APP_SECRET: z.string().min(1).optional(),
   SESSION_SECRET: z.string().min(32).optional(),
+  KEYS_SECRET: z.string().min(32).optional(),
+  DEV_LOGIN: z.enum(["0", "1"]).default("0"),
+  NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;

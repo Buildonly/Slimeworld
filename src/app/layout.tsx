@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Fredoka } from "next/font/google";
+import { Providers } from "@/components/providers";
 import "./globals.css";
 
 const round = Fredoka({ subsets: ["latin"], variable: "--font-round" });
@@ -21,7 +22,9 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={round.variable}>
-      <body className="min-h-dvh antialiased">{children}</body>
+      <body className="min-h-dvh antialiased">
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }
