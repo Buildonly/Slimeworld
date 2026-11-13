@@ -44,6 +44,16 @@ NEAR Hackathon 2026, track **Games With Real Economies**. Also fits **NFTs That 
 | Meta transactions (NEP-366) and function call keys | No gas prompts and no wallet popups in normal play |
 | Email and Google sign in | No seed phrases |
 
+## Contracts (testnet)
+
+| Contract | Account | Standard |
+| --- | --- | --- |
+| Slimes | [`nft.slimeworld-3848d3.testnet`](https://testnet.nearblocks.io/address/nft.slimeworld-3848d3.testnet) | NEP-171 |
+| Items | [`items.slimeworld-3848d3.testnet`](https://testnet.nearblocks.io/address/items.slimeworld-3848d3.testnet) | NEP-245 |
+| Town | [`town.slimeworld-3848d3.testnet`](https://testnet.nearblocks.io/address/town.slimeworld-3848d3.testnet) | Coins, rules, shops, jobs, treasury |
+
+Source in [contracts/](contracts/). `pnpm contracts:test` runs the unit tests; CI also runs a sandbox end-to-end test.
+
 ## Run it
 
 ```sh

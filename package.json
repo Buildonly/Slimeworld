@@ -11,7 +11,10 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "tsx src/db/migrate.ts"
+    "db:migrate": "tsx src/db/migrate.ts",
+    "contracts:build": "cd contracts && for c in slime_nft items_mt town; do (cd $c && cargo near build non-reproducible-wasm) || exit 1; done",
+    "contracts:test": "cd contracts && cargo test -p slime_nft -p items_mt -p town",
+    "contracts:deploy": "tsx scripts/deploy-contracts.ts"
   },
   "packageManager": "pnpm@10.28.0",
   "dependencies": {
