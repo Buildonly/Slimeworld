@@ -15,6 +15,13 @@
       "when": 1794550948866,
       "tag": "0001_thin_the_leader",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794595091464,
+      "tag": "0002_silent_vin_gonzales",
+      "breakpoints": true
     }
   ]
 }
