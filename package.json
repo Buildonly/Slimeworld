@@ -20,7 +20,9 @@
     "ticker": "NODE_USE_ENV_PROXY=1 tsx --tsconfig tsconfig.json scripts/ticker.ts",
     "mind:check": "NODE_USE_ENV_PROXY=1 tsx --tsconfig tsconfig.json scripts/mind-check.ts",
     "check:gasless": "tsx --tsconfig tsconfig.json scripts/gasless-check.ts",
-    "chain:setup": "tsx --tsconfig tsconfig.json scripts/setup-town-chain.ts"
+    "chain:setup": "tsx --tsconfig tsconfig.json scripts/setup-town-chain.ts",
+    "check:screens": "node e2e/screens-check.cjs test-results/screens",
+    "art:town": "blender -b -P art/blender/make_town.py -- .town.raw.glb art/town-preview.png && gltf-transform optimize .town.raw.glb public/models/town.glb --compress meshopt --join false --flatten false --instance false --palette false && rm .town.raw.glb"
   },
   "packageManager": "pnpm@10.28.0",
   "dependencies": {
@@ -32,6 +34,7 @@
     "@react-three/fiber": "^9.8.2",
     "drizzle-orm": "^0.45.4",
     "jose": "^6.2.17",
+    "lucide-react": "^1.72.0",
     "near-api-js": "7.5.3",
     "next": "16.4.6",
     "pg": "^8.23.1",

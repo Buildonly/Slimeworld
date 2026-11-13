@@ -38,7 +38,7 @@ export default function SlimeStage({ state, colour, size = 1, reaction, classNam
   return (
     <div className={className} role="img" aria-label={label ?? `A ${colour} slime that looks ${state}`}>
       <Canvas
-        dpr={[1, 2]}
+        dpr={[1, 1.75]}
         camera={{ position: [0, 1.5, 5.2], fov: 35 }}
         gl={{ antialias: true, alpha: true, powerPreference: "low-power" }}
         onCreated={(root) => {

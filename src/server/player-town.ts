@@ -8,6 +8,7 @@ import type { Db } from "@/db/client";
 import { chainOps, players, slimeAccounts } from "@/db/schema";
 import { ensurePlayer, feed, giveItem, hatch, PLAYER_STARTER_WALLET, play, sendToJob, setRules, slimesOf, topUpSlime, type ActionResult } from "@/economy/actions";
 import { STARTER_WALLET, type Bits } from "@/economy/config";
+import { invest } from "@/economy/shops";
 import type { Rules, SlimeColour } from "@/economy/types";
 import { serverEnv } from "@/lib/env";
 import { gameAccount } from "@/near/client";
@@ -29,7 +30,8 @@ export async function hatchForPlayer(db: Db, playerId: string, name: string, col
   if (n >= MAX_SLIMES_PER_PLAYER) return { ok: false, message: `You can raise up to ${MAX_SLIMES_PER_PLAYER} slimes.` };
 
   const result = await withWorld(db, async (world, tx) => {
-    const p = ensurePlayer(world, playerId, player.email?.split("@")[0] ?? "Player");
+    // Public name in town news: never the email.
+    const p = ensurePlayer(world, playerId, `${name}'s keeper`);
     const slime = hatch(world, p.id, name, colour);
     const key = KeyPair.fromRandom("ed25519");
     await tx.insert(slimeAccounts).values({
@@ -109,6 +111,23 @@ export async function actForPlayer(db: Db, playerId: string, a: PlayerAction): P
     changes.moves = world.journal.splice(0);
     if (r.ok && r.decision) changes.decisions.push(r.decision);
     return { result: r, changes };
+  });
+  return result ?? { ok: false, message: "The town is busy. Try again." };
+}
+
+export async function investForPlayer(db: Db, playerId: string, shopId: string, amount: Bits): Promise<ActionResult> {
+  const result = await withWorld<ActionResult>(db, async (world) => {
+    const shop = world.shops[shopId];
+    const player = world.players[playerId];
+    if (!shop) return { result: { ok: false as const, message: "No such shop." }, changes: noChanges() };
+    if (!player) return { result: { ok: false as const, message: "Hatch a slime first!" }, changes: noChanges() };
+    if (amount > player.wallet) return { result: { ok: false as const, message: "Not enough coins." }, changes: noChanges() };
+    const changes = noChanges();
+    player.wallet -= amount;
+    const wasClosed = !shop.open;
+    invest(world, shop, playerId, amount, changes);
+    changes.moves = world.journal.splice(0);
+    return { result: { ok: true as const, message: wasClosed ? `${shop.name} is open again, thanks to you!` : `You now own a share of ${shop.name}.` }, changes };
   });
   return result ?? { ok: false, message: "The town is busy. Try again." };
 }

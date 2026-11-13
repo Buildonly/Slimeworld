@@ -35,6 +35,13 @@ type Wobble = { uTime: { value: number }; uWobble: { value: number } };
 function makeJellyMaterial(source: THREE.Material): THREE.MeshPhysicalMaterial {
   const base = source instanceof THREE.MeshPhysicalMaterial ? source : new THREE.MeshPhysicalMaterial();
   const mat = base.clone();
+  // Transmission renders the scene twice; too slow for low-end phones. Clearcoat,
+  // sheen and soft translucency keep the jelly look.
+  mat.transmission = 0;
+  mat.clearcoat = 1;
+  mat.clearcoatRoughness = 0.08;
+  mat.sheen = 0.5;
+  mat.sheenRoughness = 0.4;
   mat.transparent = true;
   const wobble: Wobble = { uTime: { value: 0 }, uWobble: { value: 1 } };
   mat.userData.wobble = wobble;

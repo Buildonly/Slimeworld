@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Fredoka } from "next/font/google";
 import { Providers } from "@/components/providers";
+import { AppShell } from "@/components/shell/app-shell";
+import { ToastProvider } from "@/components/ui/toast";
 import "./globals.css";
 
 const round = Fredoka({ subsets: ["latin"], variable: "--font-round" });
@@ -21,9 +23,21 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={round.variable}>
+    <html lang="en" className={round.variable} suppressHydrationWarning>
+      <head>
+        {/* Apply a saved theme before the first paint (no flash). */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem("theme");if(t)document.documentElement.setAttribute("data-theme",t)}catch(e){}})()`,
+          }}
+        />
+      </head>
       <body className="min-h-dvh antialiased">
-        <Providers>{children}</Providers>
+        <Providers>
+          <ToastProvider>
+            <AppShell>{children}</AppShell>
+          </ToastProvider>
+        </Providers>
       </body>
     </html>
   );
