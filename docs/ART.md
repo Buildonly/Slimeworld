@@ -26,6 +26,8 @@
 5. Export as glTF (`.glb`). Compress with glTF Transform.
 6. In Three.js, swap colour and scale in code for each slime instead of exporting one model per colour.
 
+The script for these steps is [art/blender/make_slime.py](../art/blender/make_slime.py). With Blender 5 installed, `pnpm art:slime` rebuilds `public/models/slime.glb` (about 90 KB after meshopt compression) and renders `art/slime-preview.png`.
+
 ## Animation
 
 - Squash and stretch in code: scale Y down and X/Z up on landing, the reverse on jump.
