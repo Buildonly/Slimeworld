@@ -8,6 +8,7 @@ import { db } from "@/db/client";
 import { TICK_SECONDS_FAST, TICK_SECONDS_NORMAL } from "@/economy/config";
 import { formatCoins } from "@/economy/money";
 import { liveMinds } from "@/minds/live-minds";
+import { processChainOps } from "@/server/chain-worker";
 import { advanceTown } from "@/server/town";
 
 const fast = process.argv.includes("--fast");
@@ -26,6 +27,8 @@ async function main() {
       const coins = Object.values(world.slimes).reduce((a, s) => a + s.wallet, 0n);
       console.log(`tick ${world.tick} · day ${Math.floor(world.tick / 24)} · ${open} shops open · slimes hold ${formatCoins(coins)} coins`);
     } else console.log("Another ticker is running; waiting.");
+    // Mirror this tick's money for real players on chain (gasless: the game and relayer pay).
+    if (!fast) await processChainOps(db()).catch((err: unknown) => console.error("Chain worker:", err instanceof Error ? err.message : err));
     await new Promise((r) => setTimeout(r, Math.max(0, seconds * 1000 - (Date.now() - started))));
   }
   process.exit(0);

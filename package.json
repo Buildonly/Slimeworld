@@ -18,7 +18,9 @@
     "art:slime": "blender -b -P art/blender/make_slime.py -- .slime.raw.glb art/slime-preview.png && gltf-transform optimize .slime.raw.glb public/models/slime.glb --compress meshopt --join false --flatten false --instance false --palette false && rm .slime.raw.glb",
     "sim": "tsx --tsconfig tsconfig.json src/sim/cli.ts",
     "ticker": "NODE_USE_ENV_PROXY=1 tsx --tsconfig tsconfig.json scripts/ticker.ts",
-    "mind:check": "NODE_USE_ENV_PROXY=1 tsx --tsconfig tsconfig.json scripts/mind-check.ts"
+    "mind:check": "NODE_USE_ENV_PROXY=1 tsx --tsconfig tsconfig.json scripts/mind-check.ts",
+    "check:gasless": "tsx --tsconfig tsconfig.json scripts/gasless-check.ts",
+    "chain:setup": "tsx --tsconfig tsconfig.json scripts/setup-town-chain.ts"
   },
   "packageManager": "pnpm@10.28.0",
   "dependencies": {

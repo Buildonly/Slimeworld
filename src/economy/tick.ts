@@ -8,6 +8,7 @@ import { recordDay } from "./history";
 import { expireJobs, openContests, postGuardJobs, settleContests } from "./jobs";
 import { remember } from "./memory";
 import { heuristicMind, type Mind } from "./mind";
+import { record, slimeParty } from "./journal";
 import { formatCoins } from "./money";
 import { ownersTick } from "./owners";
 import { nextFloat } from "./rng";
@@ -37,6 +38,7 @@ function changeSeason(world: World, out: TickOutput): void {
     const each = prize / BigInt(top.length);
     for (const s of top) {
       s.wallet += each;
+      record(world, { from: { kind: "town" }, to: slimeParty(s.id), amount: each, kind: "prize", memo: "season prize" });
       remember(s, `I won a ${formatCoins(each)} coin prize at the start of ${season(next).title.toLowerCase()}!`);
     }
     world.treasury -= each * BigInt(top.length);
@@ -48,7 +50,8 @@ function changeSeason(world: World, out: TickOutput): void {
 }
 
 export async function runTick(world: World, minds: Minds = defaultMinds): Promise<TickOutput> {
-  const out: TickOutput = { decisions: [], events: [] };
+  const out: TickOutput = { decisions: [], events: [], moves: [] };
+  world.journal = [];
   world.tick += 1;
   changeSeason(world, out);
   settleContests(world, out);
@@ -79,5 +82,7 @@ export async function runTick(world: World, minds: Minds = defaultMinds): Promis
     recordDay(world, world.tick / TICKS_PER_DAY);
   }
   if (world.events.length > 500) world.events.splice(0, world.events.length - 500);
+  out.moves = world.journal;
+  world.journal = [];
   return out;
 }

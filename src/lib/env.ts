@@ -11,6 +11,7 @@ const serverEnvSchema = z.object({
   NEAR_RPC_URL: z.string().url().optional(),
   NEAR_GAME_ACCOUNT: z.string().min(2).optional(),
   NEAR_GAME_PRIVATE_KEY: z.string().startsWith("ed25519:").optional(),
+  NEAR_RELAYER_ACCOUNT: z.string().min(2).optional(),
   NEAR_RELAYER_PRIVATE_KEY: z.string().startsWith("ed25519:").optional(),
   NEAR_AI_API_KEY: z.string().min(1).optional(),
   NEAR_AI_MODEL: z.string().min(1).optional(),

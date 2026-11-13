@@ -43,6 +43,12 @@ export const TICKS_PER_DAY = 24;
 /** Real seconds per tick: normal play and fast forward (1 day per 10 seconds). */
 export const TICK_SECONDS_NORMAL = 60;
 export const TICK_SECONDS_FAST = 10 / TICKS_PER_DAY;
+/**
+ * The town contract counts spending per real day; the game per game day.
+ * On chain, an owner's daily limit is registered as limit x game days per
+ * real day, which is the same spending rate.
+ */
+export const GAME_DAYS_PER_REAL_DAY = (24 * 60 * 60) / (TICKS_PER_DAY * TICK_SECONDS_NORMAL);
 
 // ---------- items ----------
 

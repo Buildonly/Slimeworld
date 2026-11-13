@@ -15,6 +15,7 @@ import {
   TICKS_PER_DAY,
   coins,
 } from "./config";
+import { playerParty, record, shopParty, slimeParty } from "./journal";
 import { cheapestSellers, sellOne } from "./market";
 import { remember } from "./memory";
 import { chance, pick } from "./rng";
@@ -32,6 +33,7 @@ export function feedSlime(world: World, player: Player, slime: Slime): boolean {
   const item = offer ? ITEM_BY_ID.get(Object.keys(offer.shop.targets).find((i) => i === "berries" || i === "jelly") ?? "") : undefined;
   if (!offer || !item || offer.price > player.wallet) return false;
   player.wallet -= offer.price;
+  record(world, { from: playerParty(player.id), to: shopParty(offer.shop.id), amount: offer.price, kind: "gift", memo: `feed ${slime.id} ${item.id}` });
   sellOne(offer.shop, item.id, offer.price);
   applyItem(slime, item);
   return true;
@@ -55,6 +57,7 @@ export function ownersTick(world: World, out: { events: GameEvent[] }): void {
         if (slime.wallet < OWNER_TOP_UP_BELOW && player.wallet >= OWNER_TOP_UP_AMOUNT) {
           player.wallet -= OWNER_TOP_UP_AMOUNT;
           slime.wallet += OWNER_TOP_UP_AMOUNT;
+          record(world, { from: playerParty(player.id), to: slimeParty(slime.id), amount: OWNER_TOP_UP_AMOUNT, kind: "gift", memo: "top up" });
         }
       }
       // Kind players feed a sleeping stranger now and then.

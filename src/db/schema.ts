@@ -8,6 +8,10 @@ export const players = pgTable("players", {
   nearAccountId: text("near_account_id").unique(),
   /** The player account's private key, encrypted with KEYS_SECRET. Never sent to the browser. */
   nearKeyEnc: text("near_key_enc"),
+  /** Function call key limited to the town contract; signs the player's gasless meta transactions. */
+  nearFcKeyEnc: text("near_fc_key_enc"),
+  /** Starter coins deposited and town key added on chain. */
+  chainReady: boolean("chain_ready").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -85,4 +89,39 @@ export const prices = pgTable(
     reason: text("reason").notNull(),
   },
   (t) => [primaryKey({ columns: [t.worldId, t.shopId, t.itemId, t.day] })],
+);
+
+/** Each real player's slime on chain: its own NEAR account and its NFT. */
+export const slimeAccounts = pgTable("slime_accounts", {
+  slimeId: text("slime_id").notNull(),
+  worldId: text("world_id").notNull(),
+  playerId: text("player_id").notNull(),
+  accountId: text("account_id").notNull().unique(),
+  keyEnc: text("key_enc").notNull(),
+  nftTokenId: text("nft_token_id").notNull().unique(),
+  /** pending -> ready (account, NFT, rules and starter coins on chain) or failed. */
+  status: text("status").notNull().default("pending"),
+  error: text("error"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [primaryKey({ columns: [t.worldId, t.slimeId] })]);
+
+/** Outbox of chain writes, processed in order by the chain worker. */
+export const chainOps = pgTable(
+  "chain_ops",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    worldId: text("world_id").notNull(),
+    tick: integer("tick").notNull(),
+    /** settle (operator batch), meta (player-signed, relayed), operator (game call), hatch, player_setup */
+    kind: text("kind").notNull(),
+    payload: jsonb("payload").notNull(),
+    /** pending, done, rejected (the contract said no), failed (could not send) */
+    status: text("status").notNull().default("pending"),
+    txHash: text("tx_hash"),
+    error: text("error"),
+    attempts: integer("attempts").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("chain_ops_status_idx").on(t.status, t.id)],
 );

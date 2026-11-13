@@ -36,6 +36,7 @@ export function emptyWorld(seed: number): World {
     history: [],
     events: [],
     nextId: 0,
+    journal: [],
   };
 }
 

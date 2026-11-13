@@ -148,7 +148,9 @@ export type World = {
   history: DaySnapshot[];
   events: GameEvent[];
   nextId: number;
+  /** Money moves of the current tick (cleared each tick). */
+  journal: import("./journal").Move[];
 };
 
 /** What one tick produced, for the log and the database. */
-export type TickOutput = { decisions: Decision[]; events: GameEvent[] };
+export type TickOutput = { decisions: Decision[]; events: GameEvent[]; moves: import("./journal").Move[] };

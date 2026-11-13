@@ -4,7 +4,9 @@
  * costs the slime money. See docs/ECONOMY.md, "Slime spending".
  */
 import {
+  BPS,
   BROKE_BELOW,
+  TREASURY_FEE_BPS,
   ENERGY_DECAY_PER_TICK,
   HUNGRY_BELOW,
   ITEM_BY_ID,
@@ -22,6 +24,7 @@ import {
 import { enterContest, finishJob, jobsFor, takeJob } from "./jobs";
 import { bestBuyers, cheapestSellers, sellOne } from "./market";
 import { remember } from "./memory";
+import { record, shopParty, slimeParty } from "./journal";
 import type { Mind, MindChoice, MindOption } from "./mind";
 import { formatCoins } from "./money";
 import { canSpend, recordSpend } from "./rules";
@@ -51,6 +54,15 @@ export function buyItem(world: World, slime: Slime, itemId: string): { price: Bi
   if (!item) return null;
   for (const { shop, price } of cheapestSellers(world, itemId)) {
     if (!canSpend(slime, item.category, price).ok) return null;
+    record(world, {
+      from: slimeParty(slime.id),
+      to: shopParty(shop.id),
+      amount: price,
+      kind: "spend",
+      category: item.category,
+      emergency: item.category === "Food" && slime.energy < STARVING_BELOW,
+      memo: itemId,
+    });
     recordSpend(slime, price);
     sellOne(shop, itemId, price);
     applyItem(slime, item);
@@ -111,7 +123,7 @@ function act(world: World, slime: Slime, choice: MindChoice, options: MindOption
   if (option.action === "race" || option.action === "puzzle") {
     const contest = world.contests.find((c) => c.id === option.target);
     if (!contest) return { done: false, cost: 0n };
-    enterContest(slime, contest);
+    enterContest(world, slime, contest);
     return { done: true, cost: contest.entry };
   }
   const bought = option.target ? buyItem(world, slime, option.target) : null;
@@ -183,8 +195,12 @@ export async function slimeTick(world: World, slime: Slime, mind: Mind, out: Out
     buyer.shop.costsToday += paid;
     buyer.shop.stock[itemId] = (buyer.shop.stock[itemId] ?? 0) + units;
     slime.items[itemId] = count - units;
-    slime.wallet += paid;
-    slime.earnedToday += paid;
+    // The treasury takes its fee on market sales, as the town contract does.
+    const fee = (paid * BigInt(TREASURY_FEE_BPS)) / BigInt(BPS);
+    world.treasury += fee;
+    record(world, { from: shopParty(buyer.shop.id), to: slimeParty(slime.id), amount: paid, kind: "sale", memo: `${units} ${itemId}` });
+    slime.wallet += paid - fee;
+    slime.earnedToday += paid - fee;
     decide(world, slime, out, {
       action: "sell",
       target: itemId,
@@ -246,6 +262,7 @@ export async function slimeTick(world: World, slime: Slime, mind: Mind, out: Out
   if (options.length <= 1) return;
   slime.lastThinkTick = world.tick;
   slime.wallet -= THINK_COST;
+  record(world, { from: slimeParty(slime.id), to: { kind: "minds" }, amount: THINK_COST, kind: "think", memo: "one thought" });
   world.flows.thinking += THINK_COST;
   const choice = await mind.decide({ slime, options, tick: world.tick, world });
   const result = act(world, slime, choice, options);

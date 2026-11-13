@@ -26,6 +26,7 @@ import {
   type Margin,
 } from "./config";
 import { nextWorldId } from "./ids";
+import { playerParty, record, shopParty } from "./journal";
 import { cheapestSellers, quoteSell, refreshPrices, rollSalesWindows, sellableStock, sellOne } from "./market";
 import { chance, pick } from "./rng";
 import { seasonDemandBps } from "./seasons";
@@ -185,6 +186,7 @@ export function closeShop(world: World, shop: Shop, out: { events: GameEvent[] }
 /** Put coins into a shop for a share of future profit. Reopens it if closed. */
 export function invest(world: World, shop: Shop, investorId: string, amount: Bits, out: { events: GameEvent[] }): void {
   shop.wallet += amount;
+  record(world, { from: playerParty(investorId), to: shopParty(shop.id), amount, kind: "invest", memo: "investment" });
   shop.investors[investorId] = (shop.investors[investorId] ?? 0n) + amount;
   const investor = world.players[investorId]?.name ?? "Someone";
   const invested: GameEvent = { tick: world.tick, kind: "invested", shopId: shop.id, text: `${investor} invested in ${shop.name}.` };
@@ -250,6 +252,7 @@ export function shopDay(world: World, shop: Shop, strategy: ShopStrategy, out: {
       if (!player || cut <= 0n || cut > shop.wallet) continue;
       shop.wallet -= cut;
       player.wallet += cut;
+      record(world, { from: shopParty(shop.id), to: playerParty(investorId), amount: cut, kind: "profit", memo: "investor share" });
     }
   }
   shop.incomeToday = 0n;
