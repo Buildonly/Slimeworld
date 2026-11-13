@@ -247,7 +247,7 @@ export async function slimeTick(world: World, slime: Slime, mind: Mind, out: Out
   slime.lastThinkTick = world.tick;
   slime.wallet -= THINK_COST;
   world.flows.thinking += THINK_COST;
-  const choice = await mind.decide({ slime, options, tick: world.tick });
+  const choice = await mind.decide({ slime, options, tick: world.tick, world });
   const result = act(world, slime, choice, options);
   decide(world, slime, out, {
     action: result.done ? choice.action : "save",
@@ -255,8 +255,9 @@ export async function slimeTick(world: World, slime: Slime, mind: Mind, out: Out
     reason: result.done ? choice.reason : "That choice wasn't possible, so I'll save.",
     say: choice.say,
     cost: THINK_COST + result.cost,
-    source: mind.name,
+    source: choice.source ?? mind.name,
     verified: choice.verified,
     signature: choice.signature,
+    proof: choice.proof ?? null,
   });
 }

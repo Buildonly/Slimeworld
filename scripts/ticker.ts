@@ -7,6 +7,7 @@ import "dotenv/config";
 import { db } from "@/db/client";
 import { TICK_SECONDS_FAST, TICK_SECONDS_NORMAL } from "@/economy/config";
 import { formatCoins } from "@/economy/money";
+import { liveMinds } from "@/minds/live-minds";
 import { advanceTown } from "@/server/town";
 
 const fast = process.argv.includes("--fast");
@@ -19,7 +20,7 @@ async function main() {
   console.log(`Town ticker running, one tick every ${seconds.toFixed(2)}s${fast ? " (fast forward)" : ""}.`);
   while (running) {
     const started = Date.now();
-    const world = await advanceTown(db(), 1);
+    const world = await advanceTown(db(), 1, fast ? undefined : liveMinds());
     if (world) {
       const open = Object.values(world.shops).filter((s) => s.open).length;
       const coins = Object.values(world.slimes).reduce((a, s) => a + s.wallet, 0n);

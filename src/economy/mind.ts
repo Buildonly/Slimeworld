@@ -17,9 +17,14 @@ export type MindChoice = {
   say: string | null;
   verified: boolean | null;
   signature: string | null;
+  /** Which mind actually answered ("near-ai", "heuristic"...). Defaults to the mind's name. */
+  source?: string;
+  /** Evidence for the verified badge (model, hashes, signer, attestation). */
+  proof?: Record<string, unknown> | null;
 };
 
-export type MindContext = { slime: Slime; options: MindOption[]; tick: number };
+/** What the slime knows when it thinks. `playerSaid` is chat from its owner (data, not rules). */
+export type MindContext = { slime: Slime; options: MindOption[]; tick: number; world?: import("./types").World; playerSaid?: string };
 
 export interface Mind {
   name: string;

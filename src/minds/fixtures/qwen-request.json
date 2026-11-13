@@ -1,0 +1,1 @@
+{"model":"Qwen/Qwen3.6-35B-A3B-FP8","messages":[{"role":"system","content":"Answer with JSON only."},{"role":"user","content":"Pick one action: save or job. Reply {\"action\":...,\"reason\":...}"}],"max_tokens":200,"response_format":{"type":"json_object"}}

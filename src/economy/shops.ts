@@ -203,7 +203,15 @@ export function invest(world: World, shop: Shop, investorId: string, amount: Bit
 }
 
 /** Shopkeeper strategy for the day. A mind can replace this; it must pick from the same options. */
-export type ShopStrategy = { margin: Margin; hire: number; hoard: string | null; reason: string };
+export type ShopStrategy = {
+  margin: Margin;
+  hire: number;
+  hoard: string | null;
+  reason: string;
+  verified?: boolean | null;
+  signature?: string | null;
+  proof?: Record<string, unknown> | null;
+};
 
 export function heuristicShopStrategy(world: World, shop: Shop): ShopStrategy {
   const dayCosts = SHOP_RENT_PER_DAY * 2n;
@@ -266,9 +274,10 @@ export function shopDay(world: World, shop: Shop, strategy: ShopStrategy, out: {
     reason: strategy.reason,
     say: null,
     cost: 0n,
-    source,
-    verified: null,
-    signature: null,
+    source: strategy.proof ? "near-ai" : source,
+    verified: strategy.verified ?? null,
+    signature: strategy.signature ?? null,
+    proof: strategy.proof ?? null,
   });
   refreshPrices(world, shop);
 }

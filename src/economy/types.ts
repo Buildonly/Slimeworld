@@ -116,6 +116,8 @@ export type Decision = {
   source: string;
   verified: boolean | null;
   signature: string | null;
+  /** Evidence for verified decisions, stored as JSON. */
+  proof?: Record<string, unknown> | null;
 };
 
 /** Money that entered or left the town, for checking the books. */
