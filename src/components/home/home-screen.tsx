@@ -1,16 +1,16 @@
 "use client";
 
+import { GameScreen } from "@/game/game-screen";
+import { LoadingScreen } from "@/game/hud/loading-screen";
 import type { HomeDto } from "@/lib/dto";
 import { usePoll } from "@/lib/use-poll";
-import { ErrorNote, Loading } from "@/components/ui/states";
-import { HatchFlow } from "./hatch-flow";
-import { SlimeHome } from "./slime-home";
+import { ErrorNote } from "@/components/ui/states";
+import { HatchOverWorld } from "./hatch-over-world";
 
 export function HomeScreen() {
-  const { data, error, loading, refresh } = usePoll<HomeDto>("/api/home", 4000);
-  if (loading && !data) return <Loading label="Finding your slime…" />;
+  const { data, error, refresh } = usePoll<HomeDto>("/api/home", 15_000);
   if (error && !data) return <ErrorNote message={error} onRetry={refresh} />;
-  if (!data) return null;
-  if (!data.slimes.length) return <HatchFlow onHatched={refresh} />;
-  return <SlimeHome home={data} refresh={refresh} />;
+  if (!data) return <LoadingScreen done={false} />;
+  if (!data.slimes.length) return <HatchOverWorld onHatched={refresh} />;
+  return <GameScreen />;
 }

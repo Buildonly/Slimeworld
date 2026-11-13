@@ -192,6 +192,100 @@ for i in range(140):
     c = box("Cobble", (0.35 + random.random() * 0.2, 0.3 + random.random() * 0.2, 0.03), (math.cos(a) * r, math.sin(a) * r, 0.02), STONE_DARK, cobbles, bevel=0.0)
     c.rotation_euler = (0, 0, random.random() * math.pi)
 
+PLASTER = mat("Plaster", (0.96, 0.9, 0.78), 0.9)
+ROOF_A = mat("RoofA", (0.84, 0.36, 0.26), 0.75)
+WINDOW = mat("WindowGlow", (1.0, 0.85, 0.55), 0.4, emission=(1.0, 0.72, 0.35), strength=1.5)
+GRASS = mat("Grass", (0.5, 0.74, 0.38), 0.95)
+PAPER = mat("Paper", (0.98, 0.95, 0.86), 0.9)
+ROCK = mat("Rock", (0.6, 0.6, 0.62), 0.9)
+FLAG = mat("FlagA", (0.35, 0.78, 0.55), 0.8)
+PETALS = [mat(f"Petal{i}", c, 0.6) for i, c in enumerate([(1.0, 0.55, 0.7), (1.0, 0.85, 0.35), (0.65, 0.6, 1.0), (1.0, 1.0, 1.0)])]
+
+
+def roof(name, w, d, h, loc, material, parent):
+    """A pitched roof: a triangular prism along X."""
+    bm = bmesh.new()
+    x, y, z = w / 2, d / 2, 0
+    verts = [bm.verts.new(v) for v in [(-x, -y, z), (x, -y, z), (x, y, z), (-x, y, z), (-x, 0, h), (x, 0, h)]]
+    for f in [(0, 1, 5, 4), (3, 4, 5, 2), (0, 4, 3), (1, 2, 5), (0, 3, 2, 1)]:
+        bm.faces.new([verts[i] for i in f])
+    me = bpy.data.meshes.new(name)
+    bm.to_mesh(me)
+    bm.free()
+    o = bpy.data.objects.new(name, me)
+    scene.collection.objects.link(o)
+    o.location = loc
+    o.data.materials.append(material)
+    o.parent = parent
+    return o
+
+
+# ---------- House: plaster and timber, pitched roof (RoofA is recoloured per house) ----------
+house = empty("House")
+box("Walls", (3.2, 2.6, 2.2), (0, 0, 1.1), PLASTER, house, bevel=0.03)
+for x in (-1.6, 0, 1.6):
+    box("Beam", (0.14, 2.66, 2.2), (x, 0, 1.1), WOOD_DARK, house, bevel=0.0)
+box("BeamTop", (3.3, 2.7, 0.14), (0, 0, 2.2), WOOD_DARK, house, bevel=0.0)
+box("BeamMid", (3.28, 2.68, 0.1), (0, 0, 1.2), WOOD_DARK, house, bevel=0.0)
+roof("Roof", 3.7, 3.2, 1.5, (0, 0, 2.25), ROOF_A, house)
+box("Door", (0.7, 0.08, 1.2), (0.6, -1.32, 0.6), WOOD, house, bevel=0.02)
+for x in (-0.8,):
+    box("Window", (0.6, 0.06, 0.5), (x, -1.32, 1.55), WINDOW, house, bevel=0.01)
+    box("WindowFrame", (0.72, 0.05, 0.62), (x, -1.3, 1.55), WOOD_DARK, house, bevel=0.0)
+box("WindowSide", (0.06, 0.6, 0.5), (1.62, 0.3, 1.55), WINDOW, house, bevel=0.01)
+box("Chimney", (0.35, 0.35, 1.0), (-1.0, 0.6, 3.2), STONE_DARK, house, bevel=0.02)
+
+# ---------- Job board: where shops pin their jobs ----------
+board = empty("JobBoard")
+for x in (-0.8, 0.8):
+    box("BoardPost", (0.12, 0.12, 2.2), (x, 0, 1.1), WOOD_DARK, board, bevel=0.01)
+box("BoardPanel", (1.8, 0.1, 1.1), (0, 0, 1.55), WOOD, board, bevel=0.02)
+box("BoardRoof", (2.1, 0.5, 0.08), (0, 0, 2.2), WOOD_DARK, board, bevel=0.01)
+for i, (x, z) in enumerate([(-0.5, 1.75), (0.05, 1.7), (0.55, 1.78), (-0.25, 1.32), (0.4, 1.3)]):
+    p = box(f"Notice{i}", (0.34, 0.02, 0.38), (x, -0.07, z), PAPER, board, bevel=0.0)
+    p.rotation_euler = (0, math.radians(random.uniform(-8, 8)), 0)
+
+# ---------- Bushes, flowers, rocks, fences ----------
+bush = empty("Bush")
+for i in range(5):
+    a = i / 5 * math.tau
+    blob("BushBall", 0.45 + random.random() * 0.15, (math.cos(a) * 0.35, math.sin(a) * 0.35, 0.4), LEAF if i % 2 else LEAF_LIGHT, bush, sub=2)
+blob("BushTop", 0.5, (0, 0, 0.7), LEAF_LIGHT, bush, sub=2)
+
+flowers = empty("Flowers")
+for i in range(9):
+    a = random.random() * math.tau
+    r = random.random() * 0.6
+    x, y = math.cos(a) * r, math.sin(a) * r
+    cyl("Stem", 0.015, 0.35, (x, y, 0.17), LEAF, flowers, verts=6)
+    blob("Petal", 0.09, (x, y, 0.38), PETALS[i % len(PETALS)], flowers, sub=1)
+
+rock = empty("Rock")
+r1 = blob("RockA", 0.5, (0, 0, 0.2), ROCK, rock, sub=1)
+r1.scale = (1.2, 0.9, 0.6)
+r2 = blob("RockB", 0.3, (0.5, 0.3, 0.12), ROCK, rock, sub=1)
+
+fence = empty("Fence")
+for x in (-1.0, 0.0, 1.0):
+    box("FencePost", (0.12, 0.12, 0.9), (x, 0, 0.45), WOOD_DARK, fence, bevel=0.01)
+for z in (0.35, 0.7):
+    box("FenceRail", (2.2, 0.07, 0.1), (0, 0, z), WOOD, fence, bevel=0.0)
+
+# ---------- Race arch: start and finish line at the race track ----------
+arch = empty("RaceArch")
+for x in (-2.6, 2.6):
+    box("ArchPost", (0.3, 0.3, 3.2), (x, 0, 1.6), WOOD_DARK, arch, bevel=0.02)
+box("ArchBeam", (5.6, 0.35, 0.5), (0, 0, 3.2), WOOD, arch, bevel=0.03)
+for i in range(7):
+    f = box(f"Pennant{i}", (0.3, 0.02, 0.4), (-2.1 + i * 0.7, 0, 2.75), FLAG if i % 2 else AWN_B, arch, bevel=0.0)
+box("FinishLine", (5.0, 0.4, 0.01), (0, 0, 0.012), PAPER, arch, bevel=0.0)
+
+# ---------- Meadow: grass beyond the cobbled plaza ----------
+bpy.ops.mesh.primitive_circle_add(vertices=96, radius=60, fill_type="NGON", location=(0, 0, -0.02))
+meadow = bpy.context.active_object
+meadow.name = "Meadow"
+meadow.data.materials.append(GRASS)
+
 bpy.ops.export_scene.gltf(filepath=out_glb, export_format="GLB", export_yup=True, export_apply=True, export_cameras=False, export_lights=False)
 print(f"Exported {out_glb}")
 

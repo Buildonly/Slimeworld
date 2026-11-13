@@ -8,7 +8,7 @@ import { usePoll } from "@/lib/use-poll";
 import { ShopPanel } from "./shop-panel";
 import { SHOP_EMOJI, shopColour } from "./shop-style";
 
-const TownScene = dynamic(() => import("./town-scene"), {
+const WorldView = dynamic(() => import("@/game/world-view").then((m) => m.WorldView), {
   ssr: false,
   loading: () => <Loading label="Building the town…" />,
 });
@@ -29,8 +29,7 @@ export function TownScreen({ signedIn }: { signedIn: boolean }) {
           className="relative h-[52dvh] min-h-80 overflow-hidden rounded-3xl md:h-[60dvh]"
           style={{ background: night ? "linear-gradient(#1d2246,#3b3160)" : "linear-gradient(#bfe6ff,#fff3df)" }}
         >
-          <TownScene shops={data.shops} slimes={data.slimes} hour={data.clock.hour} selected={selected} onSelect={setSelected} />
-          <p className="pointer-events-none absolute bottom-3 left-3 rounded-full bg-card/80 px-3 py-1 text-xs text-ink-soft">Drag to look around · tap a stall</p>
+          <WorldView town={data} highlight={selected} />
         </div>
         <div className="flex gap-2 overflow-x-auto pb-1" role="tablist" aria-label="Shops">
           {data.shops.map((s) => (

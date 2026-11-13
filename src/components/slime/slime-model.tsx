@@ -27,6 +27,8 @@ type Props = {
   reaction?: Reaction | null;
   /** Offsets the animation so a crowd of slimes does not move in lockstep. */
   seed?: number;
+  /** Read each frame: true while the player is moving it, for bigger, quicker hops. */
+  movingRef?: { current: boolean };
 };
 
 type Wobble = { uTime: { value: number }; uWobble: { value: number } };
@@ -69,7 +71,7 @@ function targetColour(hex: string, saturation: number, lighten: number): THREE.C
   return c.setHSL(hsl.h, Math.min(1, hsl.s * saturation), Math.min(0.92, hsl.l + lighten));
 }
 
-export function SlimeModel({ state, colour, size = 1, reaction, seed = 0 }: Props) {
+export function SlimeModel({ state, colour, size = 1, reaction, seed = 0, movingRef }: Props) {
   const look = lookFor(state);
   const style = COLOUR_STYLES[colour];
   const { nodes } = useGLTF(SLIME_MODEL_URL);
@@ -106,9 +108,11 @@ export function SlimeModel({ state, colour, size = 1, reaction, seed = 0 }: Prop
     }
 
     // Bounce with squash and stretch.
-    const phase = t * cur.bounceRate;
-    let hop = bounceHeightAt(phase, cur.bounceHeight);
-    const ss = squashStretchAt(phase, cur.squash * Math.min(1, cur.bounceHeight * 6));
+    const moving = movingRef?.current === true && !look.sleeping;
+    const phase = t * (moving ? Math.max(1.8, cur.bounceRate * 1.6) : cur.bounceRate);
+    const height = moving ? Math.max(0.35, cur.bounceHeight) : cur.bounceHeight;
+    let hop = bounceHeightAt(phase, height);
+    const ss = squashStretchAt(phase, Math.max(cur.squash, moving ? 0.2 : 0) * Math.min(1, height * 6));
     let y = ss.y * (1 + Math.sin(t * 2.2) * cur.breath);
     let xz = ss.xz * (1 - Math.sin(t * 2.2) * cur.breath * 0.5);
     let spin = 0;

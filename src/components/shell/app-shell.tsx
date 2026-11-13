@@ -70,7 +70,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <footer className="hidden pb-6 text-center text-sm text-ink-soft md:block">
         {data && (
           <a href={explorer(data.network, "address", data.town)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 hover:underline">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-accent" /> Live on NEAR {data.network} · {data.town}
+            <span className="h-2 w-2 animate-pulse rounded-full bg-accent" /> Built on NEAR · see the town&apos;s money live
           </a>
         )}
       </footer>

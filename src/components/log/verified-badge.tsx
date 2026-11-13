@@ -8,9 +8,9 @@ type Proof = Record<string, unknown> | null;
 /** "Verified" badge for decisions made on NEAR AI Cloud, with the evidence on tap. */
 export function VerifiedBadge({ verified, source, proof }: { verified: boolean | null; source: string; proof: Proof }) {
   const [open, setOpen] = useState(false);
-  if (source === "rule") return <span className="rounded-full bg-bg-soft px-2 py-0.5 text-xs text-ink-soft">rule</span>;
+  if (source === "rule") return <span className="rounded-full bg-bg-soft px-2 py-0.5 text-xs text-ink-soft">habit</span>;
   if (source === "owner") return <span className="rounded-full bg-bg-soft px-2 py-0.5 text-xs text-ink-soft">you</span>;
-  if (source !== "near-ai") return <span className="rounded-full bg-bg-soft px-2 py-0.5 text-xs text-ink-soft">quick think</span>;
+  if (source !== "near-ai") return <span className="rounded-full bg-bg-soft px-2 py-0.5 text-xs text-ink-soft">quick</span>;
   const att = (proof?.attestation ?? null) as { tcbStatus?: string; verifiedAt?: string } | null;
   return (
     <span className="relative">
@@ -21,11 +21,11 @@ export function VerifiedBadge({ verified, source, proof }: { verified: boolean |
         className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${verified ? "bg-accent/15 text-accent" : "bg-coin/20 text-ink"}`}
       >
         {verified ? <ShieldCheck size={14} /> : <ShieldQuestion size={14} />}
-        {verified ? "Verified" : "Unverified"}
+        {verified ? "Verified" : "Unchecked"}
       </button>
       {open && (
         <span className="absolute right-0 z-30 mt-2 block w-72 rounded-2xl border border-line bg-card p-3 text-left text-xs shadow-xl">
-          <span className="mb-1 block font-semibold">{verified ? "Signed inside secure hardware" : "Could not verify"}</span>
+          <span className="mb-1 block font-semibold">{verified ? "This thought came from a sealed, checked AI" : "We couldn't check this one"}</span>
           <span className="block text-ink-soft">{String(proof?.check ?? proof?.fallback ?? "")}</span>
           {proof?.model ? <span className="mt-2 block">Model: {String(proof.model)}</span> : null}
           {proof?.signingAddress ? <span className="block break-all">Signer: {String(proof.signingAddress)}</span> : null}

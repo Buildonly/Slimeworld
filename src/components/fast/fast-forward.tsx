@@ -13,7 +13,7 @@ import type { GameEvent, World } from "@/economy/types";
 import type { TownDto, WorldDto } from "@/lib/dto";
 import { townDto, worldDto } from "@/lib/views";
 
-const TownScene = dynamic(() => import("@/components/town/town-scene"), { ssr: false, loading: () => <Loading label="Building the town…" /> });
+const WorldView = dynamic(() => import("@/game/world-view").then((m) => m.WorldView), { ssr: false, loading: () => <Loading label="Building the town…" /> });
 
 const WEEK = TICKS_PER_DAY * 7;
 const SPEEDS = { normal: { label: "1 day / 10s", ticks: 1 }, turbo: { label: "Turbo", ticks: 6 } } as const;
@@ -148,7 +148,7 @@ export function FastForward() {
       </div>
 
       <div className="relative h-[46dvh] min-h-72 overflow-hidden rounded-3xl" style={{ background: town.clock.hour >= 20 || town.clock.hour < 6 ? "linear-gradient(#1d2246,#3b3160)" : "linear-gradient(#bfe6ff,#fff3df)" }}>
-        <TownScene shops={town.shops} slimes={town.slimes} hour={town.clock.hour} selected={null} onSelect={() => undefined} />
+        <WorldView town={town} />
         {banner && (
           <div role="status" className={`absolute left-1/2 top-4 -translate-x-1/2 animate-[pop_.25s_ease-out] rounded-2xl px-4 py-2 font-semibold shadow-lg ${banner.kind === "shop_closed" ? "bg-danger text-white" : "bg-card text-ink"}`}>
             {banner.kind === "shop_closed" ? "🔒 " : banner.kind === "shop_reopened" ? "🎉 " : "📅 "}

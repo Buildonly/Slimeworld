@@ -6,7 +6,7 @@ import { and, count, eq } from "drizzle-orm";
 import { KeyPair } from "near-api-js";
 import type { Db } from "@/db/client";
 import { chainOps, players, slimeAccounts } from "@/db/schema";
-import { ensurePlayer, feed, giveItem, hatch, PLAYER_STARTER_WALLET, play, sendToJob, setRules, slimesOf, topUpSlime, type ActionResult } from "@/economy/actions";
+import { enterRace, ensurePlayer, feed, giveItem, hatch, PLAYER_STARTER_WALLET, play, sendToJob, setRules, slimesOf, topUpSlime, type ActionResult } from "@/economy/actions";
 import { STARTER_WALLET, type Bits } from "@/economy/config";
 import { invest } from "@/economy/shops";
 import type { Rules, SlimeColour } from "@/economy/types";
@@ -70,7 +70,8 @@ export type PlayerAction =
   | { action: "give"; slimeId: string; itemId: string }
   | { action: "job"; slimeId: string }
   | { action: "topup"; slimeId: string; amount: Bits }
-  | { action: "rules"; slimeId: string; rules: Rules };
+  | { action: "rules"; slimeId: string; rules: Rules }
+  | { action: "race"; slimeId: string; kind: "race" | "puzzle" };
 
 export async function actForPlayer(db: Db, playerId: string, a: PlayerAction): Promise<ActionResult> {
   const result = await withWorld(db, async (world, tx) => {
@@ -87,6 +88,9 @@ export async function actForPlayer(db: Db, playerId: string, a: PlayerAction): P
         break;
       case "job":
         r = sendToJob(world, playerId, a.slimeId);
+        break;
+      case "race":
+        r = enterRace(world, playerId, a.slimeId, a.kind);
         break;
       case "topup":
         r = topUpSlime(world, playerId, a.slimeId, a.amount);

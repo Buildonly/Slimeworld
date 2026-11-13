@@ -102,6 +102,18 @@ export function townDto(world: World, viewerId: string | null, max = 60): TownDt
     shops: Object.values(world.shops).map(shopDto),
     slimes: [...mine, ...others].map((s) => ({ id: s.id, name: s.name, colour: s.colour, state: moneyState(s), size: s.size, mine: s.ownerId === viewerId && viewerId !== null, working: Boolean(s.job) })),
     events: eventsDto(world),
+    jobs: [...world.jobs]
+      .sort((a, b) => (b.wage > a.wage ? 1 : b.wage < a.wage ? -1 : 0))
+      .slice(0, 6)
+      .map((j) => ({ kind: j.kind, wage: j.wage.toString(), shop: j.shopId ? (world.shops[j.shopId]?.name ?? null) : null })),
+    contests: world.contests.map((c) => ({
+      id: c.id,
+      kind: c.kind,
+      entry: c.entry.toString(),
+      entrants: c.entrants.length,
+      startsIn: Math.max(0, c.settlesAt - world.tick),
+      mine: viewerId ? c.entrants.some((id) => world.slimes[id]?.ownerId === viewerId) : false,
+    })),
   };
 }
 

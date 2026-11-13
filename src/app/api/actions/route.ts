@@ -16,6 +16,7 @@ const actionSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("job"), slimeId }),
   z.object({ action: z.literal("give"), slimeId, itemId: z.string().regex(/^[a-z]{2,16}$/) }),
   z.object({ action: z.literal("topup"), slimeId, amount: coinsField }),
+  z.object({ action: z.literal("race"), slimeId, kind: z.enum(["race", "puzzle"]) }),
   z.object({
     action: z.literal("rules"),
     slimeId,

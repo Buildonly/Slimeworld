@@ -9,7 +9,7 @@ const { chromium } = require("playwright");
 const BASE = process.env.BASE_URL || "http://localhost:3000";
 const OUT = process.argv[2] || "test-results/screens";
 const SCREENS = [
-  { path: "/", expect: "Wallet" },
+  { path: "/", expect: "Talk" },
   { path: "/town", expect: "Town news" },
   { path: "/market", expect: "Market" },
   { path: "/log", expect: "log" },

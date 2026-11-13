@@ -28,7 +28,7 @@ type OnChain = { onChain: { dailyLimit: string; savingsTarget: string; allowed: 
 
 const coinsOf = (bits: string) => Number(BigInt(bits) / 100n);
 
-function RulesForm({ slime, network, onSaved }: { slime: SlimeDto; network: string; onSaved: () => void }) {
+export function RulesForm({ slime, network, onSaved }: { slime: SlimeDto; network: string; onSaved: () => void }) {
   const toast = useToast();
   const [limit, setLimit] = useState(coinsOf(slime.rules.dailyLimit));
   const [savings, setSavings] = useState(coinsOf(slime.rules.savingsTarget));

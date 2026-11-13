@@ -3,7 +3,8 @@
  * writes the money journal (so the chain mirrors it) and logs a decision.
  */
 import { ITEM_BY_ID, OWNER_PLAY_JOY, STARTER_WALLET, THINK_COST, type Bits, type ItemCategory, type JobKind } from "./config";
-import { jobsFor, takeJob } from "./jobs";
+import { enterContest, jobsFor, takeJob } from "./jobs";
+import { canSpend } from "./rules";
 import { playerParty, record, shopParty, slimeParty } from "./journal";
 import { cheapestSellers, sellOne } from "./market";
 import { remember } from "./memory";
@@ -158,4 +159,25 @@ export function recordChat(world: World, playerId: string, slimeId: string, repl
   slime.joy = Math.min(100, slime.joy + 8);
   remember(slime, "My owner talked with me.");
   return decision(world, slime, { action: "talk", target: null, reason: reply.say, cost, say: reply.say });
+}
+
+/** Enter the next race or puzzle contest. Paid by the slime, inside its owner's rules. */
+export function enterRace(world: World, playerId: string, slimeId: string, kind: "race" | "puzzle"): ActionResult {
+  const slime = ownedSlime(world, playerId, slimeId);
+  if (!slime) return { ok: false, message: "That's not your slime." };
+  if (slime.asleep) return { ok: false, message: `${slime.name} is asleep.` };
+  if (slime.job) return { ok: false, message: `${slime.name} is at work right now.` };
+  if (!slime.rules.allowedJobs.includes(kind)) return { ok: false, message: `Your rules don't allow ${kind === "race" ? "races" : "puzzle contests"}.` };
+  const contest = world.contests.find((c) => c.kind === kind && c.settlesAt > world.tick && !c.entrants.includes(slime.id));
+  if (!contest) return { ok: false, message: `No ${kind === "race" ? "race" : "contest"} is open right now. Check back soon!` };
+  if (slime.energy < 30) return { ok: false, message: `${slime.name} is too tired. Feed it first.` };
+  const check = canSpend(slime, "Race", contest.entry);
+  if (!check.ok) return { ok: false, message: check.why === "I'm saving" ? `${slime.name} is saving its coins (your rules).` : check.why };
+  enterContest(world, slime, contest);
+  slime.lastCareTick = world.tick;
+  return {
+    ok: true,
+    message: `${slime.name} is in the ${kind === "race" ? "race" : "puzzle contest"}! Results in ${contest.settlesAt - world.tick} hours.`,
+    decision: decision(world, slime, { action: kind, target: contest.id, reason: "My owner entered me.", cost: contest.entry, say: "Let's win this!" }),
+  };
 }
