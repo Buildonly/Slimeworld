@@ -8,7 +8,7 @@ import { join } from "node:path";
 
 const cache = new Map<string, string>();
 
-export function loadPrompt(name: "slime" | "shopkeeper"): string {
+export function loadPrompt(name: "slime" | "shopkeeper" | "talk"): string {
   const hit = cache.get(name);
   if (hit) return hit;
   const md = readFileSync(join(process.cwd(), "prompts", `${name}.md`), "utf8");

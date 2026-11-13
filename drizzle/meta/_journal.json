@@ -29,6 +29,13 @@
       "when": 1794595916949,
       "tag": "0003_mean_genesis",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794598689593,
+      "tag": "0004_black_thanos",
+      "breakpoints": true
     }
   ]
 }

@@ -2,7 +2,7 @@
  * What a real player can do. Each action checks ownership, changes the town,
  * writes the money journal (so the chain mirrors it) and logs a decision.
  */
-import { ITEM_BY_ID, OWNER_PLAY_JOY, STARTER_WALLET, type Bits, type ItemCategory, type JobKind } from "./config";
+import { ITEM_BY_ID, OWNER_PLAY_JOY, STARTER_WALLET, THINK_COST, type Bits, type ItemCategory, type JobKind } from "./config";
 import { jobsFor, takeJob } from "./jobs";
 import { playerParty, record, shopParty, slimeParty } from "./journal";
 import { cheapestSellers, sellOne } from "./market";
@@ -137,4 +137,25 @@ export function setRules(world: World, playerId: string, slimeId: string, rules:
     allowedJobs: JOB_KINDS.filter((j) => rules.allowedJobs.includes(j)),
   };
   return { ok: true, message: `${slime.name}'s rules are saved.` };
+}
+
+/**
+ * The owner talked with their slime. A real reply was a thought, which the
+ * slime pays for. Player words are not stored in memory (they could carry
+ * instructions into later prompts); only that a chat happened.
+ */
+export function recordChat(world: World, playerId: string, slimeId: string, reply: { say: string; thought: boolean }): Decision | null {
+  const slime = ownedSlime(world, playerId, slimeId);
+  if (!slime) return null;
+  let cost: Bits = 0n;
+  if (reply.thought && slime.wallet >= THINK_COST) {
+    slime.wallet -= THINK_COST;
+    world.flows.thinking += THINK_COST;
+    cost = THINK_COST;
+    record(world, { from: slimeParty(slime.id), to: { kind: "minds" }, amount: THINK_COST, kind: "think", memo: "a chat" });
+  }
+  slime.lastCareTick = world.tick;
+  slime.joy = Math.min(100, slime.joy + 8);
+  remember(slime, "My owner talked with me.");
+  return decision(world, slime, { action: "talk", target: null, reason: reply.say, cost, say: reply.say });
 }

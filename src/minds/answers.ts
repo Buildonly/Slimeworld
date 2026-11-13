@@ -29,3 +29,9 @@ export function extractJson(text: string): unknown {
     return null;
   }
 }
+
+export const talkAnswerSchema = z.object({
+  say: z.string().min(1).max(140),
+  feeling: z.enum(["happy", "okay", "hungry", "worried", "sleepy", "lonely"]),
+});
+export type TalkAnswer = z.infer<typeof talkAnswerSchema>;

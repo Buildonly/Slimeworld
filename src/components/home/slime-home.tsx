@@ -16,6 +16,7 @@ import { SignOut } from "@/components/sign-out";
 import { CoinJar } from "./coin-jar";
 import { Sheet } from "./action-sheet";
 import { StatBar } from "./stat-bar";
+import { TalkPanel } from "./talk-panel";
 
 type Props = { home: HomeDto; refresh: () => Promise<void> };
 
@@ -99,6 +100,15 @@ export function SlimeHome({ home, refresh }: Props) {
           <p className="px-4 pb-4 text-center text-ink-soft">{headline(slime)}</p>
         </Card>
 
+        <TalkPanel
+          slimeId={slime.id}
+          name={slime.name}
+          onReply={(say) => {
+            setBubble(say);
+            setReaction({ kind: "hop", id: Date.now() });
+            setTimeout(() => setBubble(null), 6000);
+          }}
+        />
         <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
           <Button onClick={() => act("feed")} disabled={busy !== null} className="flex-col py-3" title="Buy the cheapest food">
             <Utensils size={20} /> Feed

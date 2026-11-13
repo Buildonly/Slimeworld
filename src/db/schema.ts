@@ -1,4 +1,6 @@
-import { bigint, boolean, bigserial, index, integer, jsonb, pgTable, primaryKey, text, timestamp } from "drizzle-orm/pg-core";
+import { bigint, boolean, bigserial, customType, index, integer, jsonb, pgTable, primaryKey, text, timestamp } from "drizzle-orm/pg-core";
+
+const bytea = customType<{ data: Buffer }>({ dataType: () => "bytea" });
 
 /** A person who plays. Linked to their sign-in identity and their NEAR account. */
 export const players = pgTable("players", {
@@ -125,3 +127,12 @@ export const chainOps = pgTable(
   },
   (t) => [index("chain_ops_status_idx").on(t.status, t.id)],
 );
+
+/** Spoken lines, cached by voice and text so a line is only paid for once. */
+export const voiceLines = pgTable("voice_lines", {
+  hash: text("hash").primaryKey(),
+  voiceId: text("voice_id").notNull(),
+  text: text("text").notNull(),
+  audio: bytea("audio").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
