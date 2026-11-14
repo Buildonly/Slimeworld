@@ -42,6 +42,16 @@ export function relayerAccount(): Account {
   return new Account(env.NEAR_RELAYER_ACCOUNT, nearProvider(), env.NEAR_RELAYER_PRIVATE_KEY as KeyPairString);
 }
 
+/**
+ * Why a relayed call failed, or null if every step succeeded. In a relayed
+ * (NEP-366) call the relayer's own transaction succeeds even when the
+ * player's inner call is refused, so the inner receipts must be checked too.
+ */
+export function relayFailure(res: { status?: unknown; receipts_outcome?: { outcome?: { status?: unknown } }[] }): unknown | null {
+  const failed = (s: unknown) => (s && typeof s === "object" && "Failure" in s ? (s as { Failure: unknown }).Failure : null);
+  return failed(res.status) ?? res.receipts_outcome?.map((r) => failed(r.outcome?.status)).find((f) => f) ?? null;
+}
+
 /** Relay a signed meta transaction; the relayer is topped up if it can't cover the gas. */
 export function relay(signedDelegate: Parameters<Account["relayMetaTransaction"]>[0]): ReturnType<Account["relayMetaTransaction"]> {
   return funded(() => relayerAccount().relayMetaTransaction(signedDelegate));
@@ -129,7 +139,7 @@ export async function relayPlayerCall(args: { accountId: string; fcKey: string; 
     actions: [actions.functionCall(args.method, args.args, GAS, 0n)],
   });
   const res = await relay(signedDelegate);
-  const failure = (res.status as { Failure?: unknown }).Failure;
+  const failure = relayFailure(res);
   if (failure) throw new Error(`Town said no: ${JSON.stringify(failure).slice(0, 160)}`);
   return txHash(res);
 }

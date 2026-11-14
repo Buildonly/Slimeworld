@@ -51,3 +51,13 @@ describe("live NEAR costs", () => {
     expect(Object.fromEntries(needs)).toEqual({ "k-a.g": 12n, g: 2n });
   });
 });
+
+describe("relayed calls", () => {
+  it("catch a refusal hidden in the inner receipts", async () => {
+    const { relayFailure } = await import("./town-chain");
+    const ok = { status: { SuccessValue: "" }, receipts_outcome: [{ outcome: { status: { SuccessValue: "" } } }] };
+    const refused = { status: { SuccessValue: "" }, receipts_outcome: [{ outcome: { status: { SuccessReceiptId: "x" } } }, { outcome: { status: { Failure: { ActionError: "Not enough GOO" } } } }] };
+    expect(relayFailure(ok)).toBeNull();
+    expect(JSON.stringify(relayFailure(refused))).toContain("Not enough GOO");
+  });
+});

@@ -2,14 +2,14 @@
  * Player-facing town operations: hatching and actions, each done on the
  * locked town, then handed to the chain worker.
  */
-import { and, count, eq } from "drizzle-orm";
+import { and, count, eq, sql } from "drizzle-orm";
 import { KeyPair } from "near-api-js";
 import type { Db } from "@/db/client";
 import { chainOps, players, slimeAccounts } from "@/db/schema";
 import { enterRace, ensurePlayer, feed, giveItem, hatch, play, sendToJob, setRules, slimesOf, topUpSlime, type ActionResult } from "@/economy/actions";
-import { STARTER_COINS, type Bits } from "@/economy/config";
+import { STARTER_COINS, TICKS_PER_DAY, type Bits } from "@/economy/config";
 import { invest } from "@/economy/shops";
-import type { Rules, SlimeColour } from "@/economy/types";
+import type { Rules, SlimeColour, World } from "@/economy/types";
 import { serverEnv } from "@/lib/env";
 import { gameAccount } from "@/near/client";
 import { encryptKey } from "@/near/keys";
@@ -74,15 +74,35 @@ export type PlayerAction =
   | { action: "rules"; slimeId: string; rules: Rules }
   | { action: "race"; slimeId: string; kind: "race" | "puzzle" };
 
+/**
+ * $GOO for looking after a slime: care counts once per slime per game day;
+ * feeding a slime that had fallen asleep is a rescue, which burns pool GOO.
+ * Event ids are unique, so the contract counts each one once.
+ */
+async function gooForCare(tx: Parameters<Parameters<typeof withWorld>[1]>[1], world: World, playerId: string, slimeId: string, rescue: boolean): Promise<void> {
+  const day = Math.floor(world.tick / TICKS_PER_DAY);
+  const ops: { happening: "Care" | "Rescue"; eventId: string }[] = [{ happening: "Care", eventId: `care:${slimeId}:${day}` }];
+  if (rescue) ops.push({ happening: "Rescue", eventId: `rescue:${slimeId}:${world.tick}` });
+  for (const o of ops) {
+    const [seen] = await tx.select({ id: chainOps.id }).from(chainOps).where(sql`${chainOps.payload}->>'eventId' = ${o.eventId}`).limit(1);
+    if (seen) continue;
+    await tx.insert(chainOps).values({ worldId: MAIN_WORLD, tick: world.tick, kind: "goo", payload: { type: "goo", playerId, ...o } });
+  }
+}
+
 export async function actForPlayer(db: Db, playerId: string, a: PlayerAction): Promise<ActionResult> {
   const result = await withWorld(db, async (world, tx) => {
     let r: ActionResult;
     switch (a.action) {
-      case "feed":
+      case "feed": {
+        const wasAsleep = world.slimes[a.slimeId]?.asleep === true;
         r = feed(world, playerId, a.slimeId);
+        if (r.ok) await gooForCare(tx, world, playerId, a.slimeId, wasAsleep);
         break;
+      }
       case "play":
         r = play(world, playerId, a.slimeId);
+        if (r.ok) await gooForCare(tx, world, playerId, a.slimeId, false);
         break;
       case "give":
         r = giveItem(world, playerId, a.slimeId, a.itemId);

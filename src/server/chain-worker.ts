@@ -16,6 +16,7 @@ import { serverEnv } from "@/lib/env";
 import { decryptKey, encryptKey } from "@/near/keys";
 import { createSlimeOnChain, operatorCall, relayPlayerCall, settleBatch, setupPlayerOnChain, townBalance } from "@/near/town-chain";
 import type { ChainOpPayload, ContractOp } from "@/near/town-ops";
+import { reportGoo } from "@/near/goo";
 import { noChanges, withWorld } from "./world-store";
 
 const SETTLE_BATCH = 40;
@@ -207,6 +208,11 @@ export async function processChainOps(db: Db, max = 200): Promise<WorkerReport |
             toReconcile.set(row.worldId, r);
             continue;
           }
+        } else if (p.type === "goo") {
+          const [owner] = await db.select({ account: players.nearAccountId }).from(players).where(eq(players.id, p.playerId));
+          if (!owner?.account) throw new Error("Player has no NEAR account yet");
+          const hash = await reportGoo(p.happening, p.eventId, owner.account);
+          await mark(db, row.id, "done", { txHash: hash ?? undefined });
         } else {
           const hash = await operatorCall(p.method, p.args);
           await mark(db, row.id, "done", { txHash: hash });

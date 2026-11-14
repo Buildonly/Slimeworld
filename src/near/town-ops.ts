@@ -19,7 +19,9 @@ export type ContractOp = { from: string; to: string; amount: string; kind: Contr
 export type ChainOpPayload =
   | { type: "settle"; op: ContractOp; slimeIds: string[]; playerIds: string[] }
   | { type: "meta"; playerId: string; method: "send" | "invest" | "set_rules"; args: Record<string, unknown> }
-  | { type: "operator"; method: string; args: Record<string, unknown> };
+  | { type: "operator"; method: string; args: Record<string, unknown> }
+  /** Tell the $GOO contract something happened; it decides the GOO. */
+  | { type: "goo"; happening: "Care" | "Win" | "Rescue"; eventId: string; playerId: string };
 
 /** Who is who on chain. Returns null for parties that only live in the simulation. */
 export type AccountBook = {

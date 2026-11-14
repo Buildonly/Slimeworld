@@ -7,7 +7,7 @@
 import { Account, actions, teraToGas, type KeyPairString } from "near-api-js";
 import { gameAccount, livePrices, nearProvider } from "./client";
 import { topUpTo } from "./costs";
-import { ids, relay } from "./town-chain";
+import { ids, relay, relayFailure } from "./town-chain";
 
 const ONE_YOCTO = 1n;
 const GAS = teraToGas("30");
@@ -27,7 +27,7 @@ export async function moveSlimeNft(args: { accountId: string; fullKey: string; t
     actions: [actions.functionCall("nft_transfer", { receiver_id: args.to, token_id: args.tokenId, memo: "Moved to my own wallet" }, GAS, ONE_YOCTO)],
   });
   const res = await relay(signedDelegate);
-  const failure = (res.status as { Failure?: unknown }).Failure;
+  const failure = relayFailure(res);
   if (failure) throw new Error(`The move was refused: ${JSON.stringify(failure).slice(0, 160)}`);
   return res.transaction.hash;
 }

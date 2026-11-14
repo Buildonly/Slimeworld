@@ -9,6 +9,8 @@ import { BuiltOnNear } from "@/components/brand/near-logo";
 import { serverEnv } from "@/lib/env";
 import { nearProvider } from "@/near/client";
 import { contractIds } from "@/near/contracts";
+import { gooStats } from "@/near/goo";
+import { wholeGoo } from "@/near/goo-rules";
 
 export const metadata: Metadata = { title: "Fair play · Slimeworld" };
 export const dynamic = "force-dynamic";
@@ -36,6 +38,12 @@ export default async function Page() {
   const game = serverEnv().NEAR_GAME_ACCOUNT;
   const town = game ? contractIds(game).town : null;
   const proofs = cheatProofs();
+  const gooId = game ? contractIds(game).goo : null;
+  const goo = gooId
+    ? await gooStats()
+        .then((s) => ({ pool: String(wholeGoo(BigInt(s.pool))), rewarded: String(wholeGoo(BigInt(s.rewarded))), burned: String(wholeGoo(BigInt(s.burned))), reports: s.reports }))
+        .catch(() => null)
+    : null;
   const [[slimes], [settled], [refused], treasury] = await Promise.all([
     db().select({ n: count() }).from(slimeAccounts).where(eq(slimeAccounts.status, "ready")),
     db().select({ n: count() }).from(chainOps).where(eq(chainOps.status, "done")),
@@ -59,6 +67,23 @@ export default async function Page() {
         <Stat value={String(refused?.n ?? 0)} label="Payments refused" />
         <Stat value={treasury === null ? "–" : `🪙 ${formatBits(treasury)}`} label="Town treasury" />
       </section>
+      {goo && (
+        <section className="flex flex-col gap-2 rounded-2xl border border-line bg-card p-4" aria-label="$GOO live">
+          <h2 className="text-lg font-semibold">🟢 $GOO, live from its contract</h2>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <Stat value={Number(goo.pool).toLocaleString()} label="In the Goo Pool" />
+            <Stat value={Number(goo.rewarded).toLocaleString()} label="Paid to keepers" />
+            <Stat value={Number(goo.burned).toLocaleString()} label="Burned forever" />
+            <Stat value={String(goo.reports)} label="Things reported" />
+          </div>
+          <p className="text-sm text-ink-soft">The game only reports what happened, once each. The contract decides every amount and burns GOO when a keeper rescues a sleeping slime. Testnet, no cash value.</p>
+          {gooId && (
+            <a className="text-sm text-accent underline" href={explorer("address", gooId)} target="_blank" rel="noreferrer">
+              {gooId}
+            </a>
+          )}
+        </section>
+      )}
       {town && (
         <p className="text-sm text-ink-soft">
           Town contract:{" "}

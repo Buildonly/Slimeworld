@@ -70,7 +70,12 @@ async function persist(db: Db, id: string, world: World, changes: Changes): Prom
   }
   const book = id === MAIN_WORLD ? await accountBook(db, id) : null;
   if (book) {
-    const ops = [...changes.moves.map((m) => moveToChainOp(m, book)), ...changes.events.map(eventToChainOp)].filter((o): o is ChainOpPayload => o !== null);
+    // A real player's slime won a contest: $GOO for its keeper.
+    const wins = changes.events.flatMap((e): ChainOpPayload[] => {
+      const owner = e.kind === "contest" && e.slimeId ? world.slimes[e.slimeId]?.ownerId : null;
+      return owner && book.player(owner) ? [{ type: "goo", happening: "Win", eventId: `win:${e.tick}:${e.slimeId}`, playerId: owner }] : [];
+    });
+    const ops = [...changes.moves.map((m) => moveToChainOp(m, book)), ...changes.events.map(eventToChainOp), ...wins].filter((o): o is ChainOpPayload => o !== null);
     if (ops.length) await db.insert(chainOps).values(ops.map((payload) => ({ worldId: id, tick: world.tick, kind: payload.type, payload })));
   }
 }

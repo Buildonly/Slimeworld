@@ -7,6 +7,7 @@ import { FastForward, LogOut, ShieldCheck } from "lucide-react";
 import { DecisionItem } from "@/components/log/decision-item";
 import { BuiltOnNear } from "@/components/brand/near-logo";
 import { SignIn } from "@/components/sign-in";
+import { GooPanel } from "@/components/wallet/goo-panel";
 import { WalletPanel } from "@/components/wallet/wallet-panel";
 import { MarketScreen } from "@/components/market/market-screen";
 import { RulesForm } from "@/components/rules/rules-screen";
@@ -59,7 +60,12 @@ export function MenuSheet({ slime, guest, onClose, onSaved }: { slime: SlimeDto;
         </>
       )}
       {tab === "Rules" && <RulesForm slime={slime} onSaved={onSaved} />}
-      {tab === "Wallet" && <WalletPanel names={{ [slime.id]: slime.name }} />}
+      {tab === "Wallet" && (
+        <div className="flex flex-col gap-4">
+          <GooPanel slimeId={slime.id} onChanged={onSaved} />
+          <WalletPanel names={{ [slime.id]: slime.name }} />
+        </div>
+      )}
       {tab === "Market" && <MarketScreen signedIn />}
       {tab === "Town" && <Town />}
       {tab === "More" && (
