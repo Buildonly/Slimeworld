@@ -13,6 +13,8 @@ async function main() {
 }
 
 main().catch((err: unknown) => {
-  console.error(err instanceof Error ? err.message : err);
+  // Drizzle wraps the driver error; show the real reason (never the URL or password).
+  const cause = err instanceof Error && err.cause instanceof Error ? ` (${err.cause.message})` : "";
+  console.error(err instanceof Error ? `${err.message}${cause}` : err);
   process.exit(1);
 });
