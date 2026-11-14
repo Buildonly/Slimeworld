@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+/*
+ * Colour tokens. Light is the default; dark follows the system unless the
+ * player picks a theme (data-theme on <html>).
+ */
+:root {
+  --bg: #fff7ec;
+  --bg-soft: #ffeedd;
+  --card: #ffffff;
+  --ink: #3a2c2a;
+  --ink-soft: #7a6660;
+  --line: #f0dcc8;
+  --accent: #2fb67c;
+  --accent-ink: #ffffff;
+  --coin: #e9a92b;
+  --danger: #e2574c;
+  --sky: #bfe6ff;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1b1524;
+    --bg-soft: #251d31;
+    --card: #2c2339;
+    --ink: #f6ece6;
+    --ink-soft: #b9a8b8;
+    --line: #3d3150;
+    --accent: #4fd59b;
+    --accent-ink: #10231a;
+    --coin: #f3c04f;
+    --danger: #ff7a6e;
+    --sky: #2a2f55;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #1b1524;
+  --bg-soft: #251d31;
+  --card: #2c2339;
+  --ink: #f6ece6;
+  --ink-soft: #b9a8b8;
+  --line: #3d3150;
+  --accent: #4fd59b;
+  --accent-ink: #10231a;
+  --coin: #f3c04f;
+  --danger: #ff7a6e;
+  --sky: #2a2f55;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-soft: var(--bg-soft);
+  --color-card: var(--card);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-coin: var(--coin);
+  --color-danger: var(--danger);
+  --color-sky: var(--sky);
+  --font-sans: var(--font-round), ui-rounded, system-ui, sans-serif;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+}
+
+@keyframes fadein {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pop {
+  from { transform: translateY(8px) scale(0.96); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+@keyframes wobble {
+  0%, 100% { transform: rotate(-4deg) scale(1, 1); }
+  50% { transform: rotate(4deg) scale(1.03, 0.97); }
+}
+
+@keyframes crack {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-3px) rotate(-3deg); }
+  75% { transform: translateX(3px) rotate(3deg); }
+  100% { transform: translateX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}

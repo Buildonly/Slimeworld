@@ -1,0 +1,56 @@
+[
+  {
+    "attempt": "banned-item",
+    "title": "Buy something the owner banned",
+    "story": "The slime tries to buy a party hat, but its owner only allows food.",
+    "error": "Smart contract panicked: Owner does not allow this",
+    "txHash": "BqZML63KPvDrb2GqvEXg3WTYDnDgRKzhZzPPqWfvBMxW",
+    "network": "testnet",
+    "at": "2026-11-14T06:07:02.970393+00:00"
+  },
+  {
+    "attempt": "over-limit",
+    "title": "Spend past the daily limit",
+    "story": "The slime tries to spend more on berries in one go than its owner allows in a day.",
+    "error": "Smart contract panicked: Over the daily limit",
+    "txHash": "7UwLmMQarWhMtz5Di24FtGqd8csDzev3BxyShhzMVQW4",
+    "network": "testnet",
+    "at": "2026-11-14T06:07:07.753903+00:00"
+  },
+  {
+    "attempt": "cash-out",
+    "title": "A slime cashes out on its own",
+    "story": "The slime tries to take its coins out of the town as NEAR.",
+    "error": "Smart contract panicked: Slimes cannot withdraw",
+    "txHash": "2cEDd2oDTfW24iWW5JbUjk26enRksPahV4KYoevhs5oN",
+    "network": "testnet",
+    "at": "2026-11-14T06:07:12.002413+00:00"
+  },
+  {
+    "attempt": "not-yours",
+    "title": "Spend someone else's coins",
+    "story": "A player signs a payment from a slime's wallet as if it were theirs.",
+    "error": "Smart contract panicked: You can only send your own coins",
+    "txHash": "6dqc6pwD9UrHSZHPzC7o2BhhP2XEdGRhfJE68Q3APEP3",
+    "network": "testnet",
+    "at": "2026-11-14T06:07:16.206521+00:00"
+  },
+  {
+    "attempt": "fake-game",
+    "title": "Pretend to be the game",
+    "story": "A player sends the game's own settle call to pay itself a prize.",
+    "error": "Smart contract panicked: Only the game can do this",
+    "txHash": "J71sNhb6ryWkeUtf2KNWe3KgNpjvtoUeMa6pyBGEKr6H",
+    "network": "testnet",
+    "at": "2026-11-14T06:07:20.763241+00:00"
+  },
+  {
+    "attempt": "stranger-withdraw",
+    "title": "Take coins from someone's slime",
+    "story": "A stranger tries to move a slime's coins to its owner's purse.",
+    "error": "Smart contract panicked: Only the owner can do this",
+    "txHash": "CVQwzLECjnwoF5CeTf7HNvLjoxFqFScM8voB2iQkiVKW",
+    "network": "testnet",
+    "at": "2026-11-14T06:07:25.43347+00:00"
+  }
+]

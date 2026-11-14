@@ -4,7 +4,7 @@ Read this before writing any code in this repo. These rules override your defaul
 
 ## The job
 
-Build Slimeworld as described in [docs/PRODUCT.md](docs/PRODUCT.md), in the order in [docs/PROJECT.md](docs/PROJECT.md). Finish each step's check before starting the next. Ship a complete, polished game, not a prototype.
+Build Slimeworld as described in [docs/PRODUCT.md](docs/PRODUCT.md) and [docs/HOW-IT-WORKS.md](docs/HOW-IT-WORKS.md). Ship a complete, polished game, not a prototype.
 
 ## Git
 

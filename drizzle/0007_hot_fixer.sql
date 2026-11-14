@@ -1,0 +1,1 @@
+ALTER TABLE "worlds" ADD COLUMN "ticked_at" timestamp with time zone DEFAULT now() NOT NULL;

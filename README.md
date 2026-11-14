@@ -1,77 +1,98 @@
 # Slimeworld
 
-Raise a slime that earns its own living.
+**Raise a slime that earns its own living.**
 
-Every slime in Slimeworld is a small AI creature with its own wallet on NEAR. It eats, works, shops, saves and can go broke. Feed it and train it, and it grows bright, round and clever. Leave it alone too long and it runs out of money, goes pale and flat, and finally falls asleep until someone looks after it again.
+Slimeworld is a 3D town of AI slimes. Each slime has its own NEAR wallet. It eats, works, shops and saves on its own, within rules you set. Shopkeepers are AI slimes too: prices rise and fall, and shops go broke and reopen.
 
-The economy is the game. Slimes buy food from shopkeeper slimes, take jobs, race, and trade with each other. Prices move with supply and demand. Nobody patches the economy by hand: it runs on its own, driven by players and by the slimes themselves.
+**Play now:** https://slimeworld-buildonly.vercel.app
 
-Players never see a seed phrase or a gas prompt. Sign in with email or Google and play.
+![Playing Slimeworld](docs/images/play.png)
 
-## Built for
+## Features
 
-NEAR Hackathon 2026, track **Games With Real Economies**. Also fits **NFTs That Do Something**: each slime is an NFT that is also its own account, holding money and items.
+- **Play in seconds.** Start as a guest or with email or Google. No seed phrase, no gas prompts.
+- **A slime with a mind.** It decides by itself on NEAR AI Cloud, and every choice is logged with its reason.
+- **It talks back.** Chat by voice or text. Each slime has its own voice.
+- **Your rules, checked on chain.** Set a daily limit, allowed shops and savings. A NEAR contract enforces them.
+- **A living economy.** Prices move with supply and demand, and shops can go broke. Fast forward a week in a minute.
+- **Play together.** Friends, clans, gifts, a player market and leaderboards.
+- **$GOO.** A token earned by caring for slimes. Its rules live in its own contract.
+- **Really yours.** Each slime is an NFT with its own account. Move it to your own NEAR wallet any time.
+
+| | |
+| --- | --- |
+| ![Home](docs/images/home.png) | ![How it works](docs/images/how.png) |
+| ![Ranks](docs/images/ranks.png) | ![Fair play](docs/images/fair-play.png) |
 
 ## How to play
 
-1. **Hatch.** Sign in with email or Google. You get your first slime and a little NEAR to start it off.
-2. **Care.** Feed it, play with it, train it. Food and toys are items you buy or craft.
-3. **Let it work.** Your slime takes jobs on its own: deliveries, races, puzzle contests, helping a shop. It earns into its own wallet.
-4. **Watch it decide.** It spends its earnings by itself, within the rules you set, and tells you why: "Bought berries: cheapest food today, 14 left in stock."
-5. **Talk to it.** Every slime has its own voice and remembers how you treated it.
-6. **Grow the town.** Invest in shops, breed rare colours, rent your slime to other players, or open a stall of your own.
+Open https://slimeworld-buildonly.vercel.app on a phone or computer.
 
-## What makes it different
+| Do | See |
+| --- | --- |
+| Tap **Hatch your slime**, then **jump in as a guest** (or sign in with email or Google) | Your slime hatches in the town square with its own NEAR account and starter coins |
+| Move with the on-screen stick or the arrow keys; drag to look around | The slime hops along the paths; the small map turns with you |
+| Tap **Feed**, **Pat** or **Talk** | Its mood bars rise and it answers you, in text or its own voice |
+| Open the **Menu** (top right) → **Journal** | Every choice your slime made on its own, with its reason, cost and a **Verified** badge |
+| Menu → **Rules**: change the daily limit or untick a shop, then **Save rules** | Your slime now spends only inside those rules, and the town contract enforces them |
+| Walk to the **Job board** (east) or the **Race ground** (north) | Jobs and races pay coins into your slime's wallet |
+| Walk down **Market Street** (south) | Shop prices change with stock and demand |
+| Tap the coins at the top → **Add coins from any chain** | A live NEAR Intents quote for topping up with USDC on Base or another coin |
+| Tap the trophy | Ranks, friends, clans and the player market |
+| Open `/fast` and press play | A week of the town's economy in a minute: prices move, shops close and reopen |
+| Open `/proof` | Live contract numbers and real transactions where the town refused cheats |
+| Menu → **Account** → **Sign out** | You are signed out; guests are warned first |
 
-- **Slimes that pay their own way.** Each slime pays for its own thinking on NEAR AI Cloud from its own wallet. A rich slime thinks more and does more.
-- **The money state is visible.** Colour, shape and bounce show how a slime is doing, with no numbers needed.
-- **Verified minds.** Slime decisions run in secure hardware on NEAR AI Cloud, and each one carries a signature the game checks and shows as a badge.
-- **Spending rules you control.** Daily limits and allowed shops for each slime, so it can act alone and stay safe.
-- **Voices.** ElevenLabs gives every slime a voice that changes as it grows. Speak to it and it answers.
-- **A town that lives without you.** Shopkeepers set prices from stock and demand, hoard, go bankrupt and reopen when someone invests.
-- **Fast forward.** One button plays a week of the economy in a minute, so anyone can watch it move.
-- **Top up from any chain.** Pay with USDC on Base, SOL, ETH and more through NEAR Intents.
+## How it works
 
-## NEAR technology
+The player flow, the town, the economy and the platform are on one short page: **[docs/HOW-IT-WORKS.md](docs/HOW-IT-WORKS.md)**. Players can see the same thing in the game at `/how`.
+
+## Built with NEAR
 
 | Piece | Used for |
 | --- | --- |
-| NEAR accounts | One account per slime, so every slime holds its own money and items |
-| NEP-245 multi-token | Every item (food, toys, hats, materials) in one contract |
-| NEP-171 NFT | The slime itself, linked to its account |
-| NEAR AI Cloud | Each slime's mind, with verifiable signatures |
-| NEAR Intents (1Click API) | Top-ups from any coin on any chain |
-| Meta transactions (NEP-366) and function call keys | No gas prompts and no wallet popups in normal play |
-| Email and Google sign in | No seed phrases |
+| NEP-171 NFT | Each slime, linked to its own account |
+| NEP-245 multi-token | Food, toys and other items |
+| NEP-141 token | $GOO |
+| Town contract | Coins, owner rules, shops and jobs. Every payment is checked again on chain. |
+| Meta transactions (NEP-366) | Gasless play through a relayer |
+| NEAR AI Cloud | Slime and shopkeeper minds, with signed answers |
+| NEAR Intents 1Click | Top ups from other chains |
+| NEAR Connect | Link your own NEAR wallet |
 
-## Run it
+The live town runs on **testnet**, where coins are play money. The **Fair play** page (`/proof`) shows live contract numbers and real transactions where the town refused cheats.
+
+## Tech stack
+
+Next.js 16 · React 19 · three.js (React Three Fiber) · Tailwind 4 · Postgres with Drizzle · Zod · Rust contracts (near-sdk) · Vitest and Playwright · ElevenLabs voices
+
+## Run locally
 
 ```sh
-git clone <repo> && cd <repo>
 pnpm install
-cp .env.example .env.local      # fill in the values listed in docs/SETUP.md
+cp .env.example .env.local   # see docs/SETUP.md
 pnpm db:migrate
-pnpm dev                        # http://localhost:3000
+pnpm dev                     # http://localhost:3000
 ```
 
-Full setup, contracts and keys: [docs/SETUP.md](docs/SETUP.md).
-
-## Documents
-
-| File | What it covers |
+| Command | Does |
 | --- | --- |
-| [docs/PRODUCT.md](docs/PRODUCT.md) | The game: slimes, loop, economy, screens |
-| [docs/ECONOMY.md](docs/ECONOMY.md) | Pricing, jobs, wages, bankruptcy, balancing |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the parts fit: frontend, backend, contracts, agents |
-| [docs/PROJECT.md](docs/PROJECT.md) | Build plan in order, with checks for each step |
-| [docs/TOOLS.md](docs/TOOLS.md) | Open source tools, free assets and services |
-| [docs/ART.md](docs/ART.md) | Slime look, Blender steps, animation, sound |
-| [docs/SETUP.md](docs/SETUP.md) | Keys, environment, deploy |
-| [docs/DEMO.md](docs/DEMO.md) | The demo video script |
-| [docs/SUBMISSION.md](docs/SUBMISSION.md) | Hackathon submission text and checklist |
-| [AGENTS.md](AGENTS.md) | Instructions for AI coding agents working on this repo |
-| [prompts/](prompts/) | The prompts each slime and shopkeeper runs on |
+| `pnpm test` | Unit tests |
+| `pnpm typecheck` / `pnpm lint` | Type check and lint |
+| `pnpm contracts:test` | Contract tests |
+
+## Docs
+
+| File | Covers |
+| --- | --- |
+| [HOW-IT-WORKS.md](docs/HOW-IT-WORKS.md) | Player flow, town, economy, platform |
+| [PRODUCT.md](docs/PRODUCT.md) | The game design |
+| [ECONOMY.md](docs/ECONOMY.md) | Prices, jobs, wages and balance |
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Code layout and services |
+| [SETUP.md](docs/SETUP.md) | Keys, environment, deploy |
+| [ART.md](docs/ART.md) | The slime look |
+| [TOOLS.md](docs/TOOLS.md) | Open source tools and assets used |
 
 ## License
 
-MIT
+MIT, see [LICENSE](LICENSE).
