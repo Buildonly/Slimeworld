@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 /** Small, cheap status for the header: the town clock and the viewer's coins. */
 export async function GET() {
   // Everyone's header polls this, so the town keeps ticking without a server process.
-  after(() => catchUp(db()).catch(() => undefined));
+  after(() => catchUp(db()).catch((err: unknown) => console.error("Town catch-up failed:", err instanceof Error ? err.message : "unknown")));
   const world = await loadWorld(db());
   const id = await currentPlayerId();
   const player = id ? world.players[id] : undefined;

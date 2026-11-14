@@ -26,11 +26,12 @@ export async function catchUp(db: Db, now = new Date()): Promise<number> {
   if (!row) return 0;
   const { due, next } = dueTicks(row.tickedAt, now);
   if (due === 0) return 0;
-  // Claim these ticks: only one request wins the update.
+  // Claim these ticks: only one request wins the update. Postgres keeps
+  // microseconds but a JS Date only milliseconds, so compare at that precision.
   const claimed = await db
     .update(worlds)
     .set({ tickedAt: next })
-    .where(and(eq(worlds.id, MAIN_WORLD), sql`${worlds.tickedAt} = ${row.tickedAt}`))
+    .where(and(eq(worlds.id, MAIN_WORLD), sql`date_trunc('milliseconds', ${worlds.tickedAt}) = ${row.tickedAt}`))
     .returning({ id: worlds.id });
   if (!claimed.length) return 0;
   // A backlog runs on the free minds; a single live tick thinks on NEAR AI.
