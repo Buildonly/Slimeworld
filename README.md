@@ -24,6 +24,25 @@ Slimeworld is a 3D town of AI slimes. Each slime has its own NEAR wallet. It eat
 | ![Home](docs/images/home.png) | ![How it works](docs/images/how.png) |
 | ![Ranks](docs/images/ranks.png) | ![Fair play](docs/images/fair-play.png) |
 
+## How to play
+
+Open https://slimeworld-buildonly.vercel.app on a phone or computer.
+
+| Do | See |
+| --- | --- |
+| Tap **Hatch your slime**, then **jump in as a guest** (or sign in with email or Google) | Your slime hatches in the town square with its own NEAR account and starter coins |
+| Move with the on-screen stick or the arrow keys; drag to look around | The slime hops along the paths; the small map turns with you |
+| Tap **Feed**, **Pat** or **Talk** | Its mood bars rise and it answers you, in text or its own voice |
+| Open the **Menu** (top right) → **Journal** | Every choice your slime made on its own, with its reason, cost and a **Verified** badge |
+| Menu → **Rules**: change the daily limit or untick a shop, then **Save rules** | Your slime now spends only inside those rules, and the town contract enforces them |
+| Walk to the **Job board** (east) or the **Race ground** (north) | Jobs and races pay coins into your slime's wallet |
+| Walk down **Market Street** (south) | Shop prices change with stock and demand |
+| Tap the coins at the top → **Add coins from any chain** | A live NEAR Intents quote for topping up with USDC on Base or another coin |
+| Tap the trophy | Ranks, friends, clans and the player market |
+| Open `/fast` and press play | A week of the town's economy in a minute: prices move, shops close and reopen |
+| Open `/proof` | Live contract numbers and real transactions where the town refused cheats |
+| Menu → **Account** → **Sign out** | You are signed out; guests are warned first |
+
 ## How it works
 
 The player flow, the town, the economy and the platform are on one short page: **[docs/HOW-IT-WORKS.md](docs/HOW-IT-WORKS.md)**. Players can see the same thing in the game at `/how`.
