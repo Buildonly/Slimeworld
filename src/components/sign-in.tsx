@@ -9,7 +9,11 @@ const privyAppId = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
 /** Privy loads only when this sheet opens, never on the first page. */
 const PrivyLogin = dynamic(() => import("./auth/privy-login"), {
   ssr: false,
-  loading: () => <div className="h-[60px] w-full animate-pulse rounded-2xl bg-accent/40" />,
+  loading: () => (
+    <div role="status" className="flex h-[60px] w-full animate-pulse items-center justify-center rounded-2xl bg-accent/60 text-lg font-semibold text-accent-ink">
+      Loading sign in…
+    </div>
+  ),
 });
 
 type Status = LoginStatus;
