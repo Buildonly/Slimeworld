@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { shopColour } from "@/components/town/shop-style";
 import type { GameBus } from "../bus";
+import { arrowTurn, mapPoint } from "../map-view";
 import { WALK_RADIUS, type Spot, type Vec2 } from "../layout";
 
 /** Round map of the town: stalls, the job board, the races, you, and where to go. */
@@ -16,7 +17,12 @@ export function Minimap({ bus, spots, closed, goal }: { bus: GameBus; spots: Spo
       if (c && ctx) {
         const s = c.width;
         const k = (s / 2 - 6) / WALK_RADIUS;
-        const P = (p: Vec2) => [s / 2 + p.x * k, s / 2 - p.z * k] as const; // north up
+        // The map turns with your view: what is ahead of you is up, what is on
+        // your right is right. Same as the screen and the stick.
+        const P = (p: Vec2) => {
+          const m = mapPoint(bus.yaw, p);
+          return [s / 2 + m.right * k, s / 2 - m.ahead * k] as const;
+        };
         ctx.clearRect(0, 0, s, s);
         ctx.fillStyle = "#9ccf7a";
         ctx.beginPath();
@@ -41,10 +47,16 @@ export function Minimap({ bus, spots, closed, goal }: { bus: GameBus; spots: Spo
           ctx.arc(x, y, 8 + Math.sin(performance.now() / 200) * 2, 0, Math.PI * 2);
           ctx.stroke();
         }
+        const [nx, ny] = P({ x: 0, z: WALK_RADIUS * 0.82 });
+        ctx.fillStyle = "#2a1c1f";
+        ctx.font = "bold 11px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("N", nx, ny);
         const [px, py] = P(bus.mover.pos);
         ctx.save();
         ctx.translate(px, py);
-        ctx.rotate(-bus.mover.heading + Math.PI);
+        ctx.rotate(arrowTurn(bus.yaw, bus.mover.heading));
         ctx.fillStyle = "#fff";
         ctx.strokeStyle = "#2a1c1f";
         ctx.lineWidth = 2;

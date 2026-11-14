@@ -104,3 +104,30 @@ describe("first view", () => {
     }
   });
 });
+
+describe("the small map", () => {
+  it("matches the screen: ahead is up, right is right, and the arrow points where you hop", async () => {
+    const { mapPoint, arrowTurn } = await import("./map-view");
+    const { GameBus } = await import("./bus");
+    for (const yaw of [0, 0.7, Math.PI / 2, 2.5, -1.2]) {
+      const bus = new GameBus({ x: 0, z: 0 });
+      bus.yaw = yaw;
+      for (const [sx, up] of [[0, 1], [0, -1], [1, 0], [-1, 0]] as const) {
+        // the stick: pushing right gives input x = -1 (see joystick.tsx)
+        bus.setInput(-sx, up);
+        for (let i = 0; i < 90; i++) bus.advance(1 / 60, [], [], 1); // finish turning
+        const from = { ...bus.mover.pos };
+        for (let i = 0; i < 20; i++) bus.advance(1 / 60, [], [], 1);
+        const moved = mapPoint(yaw, { x: bus.mover.pos.x - from.x, z: bus.mover.pos.z - from.z });
+        expect(Math.sign(Math.round(moved.right * 100)) || 0).toBe(sx);
+        expect(Math.sign(Math.round(moved.ahead * 100)) || 0).toBe(up);
+        // arrow tip on the canvas (x right, y down) after the turn
+        const t = arrowTurn(yaw, bus.mover.heading);
+        expect(Math.round(Math.sin(t)) || 0).toBe(sx);
+        expect(Math.round(-Math.cos(t)) || 0).toBe(-up || 0);
+        bus.setInput(0, 0);
+        for (let i = 0; i < 60; i++) bus.advance(1 / 60, [], [], 1);
+      }
+    }
+  });
+});
