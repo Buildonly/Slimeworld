@@ -61,7 +61,7 @@ export function GameScreen() {
   const toast = useToast();
   const home = usePoll<HomeDto>("/api/home", 4000);
   const town = usePoll<TownDto>("/api/town", 5000);
-  const [bus] = useState(() => new GameBus(spawnPoint(6)));
+  const [bus] = useState(() => new GameBus(spawnPoint()));
   const [nearby, setNearby] = useState<Spot | null>(null);
   const [panel, setPanel] = useState<Panel>(null);
   const [busy, setBusy] = useState(false);

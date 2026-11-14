@@ -14,5 +14,5 @@ export function WorldView({ town, highlight }: { town: TownDto; highlight?: stri
   const shopIds = useMemo(() => town.shops.map((s) => s.id), [town.shops]);
   const layout = useMemo(() => townLayout(shopIds), [shopIds]);
   const beam = highlight ? (layout.spots.find((s) => s.id === highlight)?.pos ?? null) : null;
-  return <GameScene bus={bus} shops={town.shops} slimes={town.slimes.slice(0, 30)} me={null} layout={layout} hour={town.clock.hour} beam={beam} />;
+  return <GameScene bus={bus} shops={town.shops} slimes={town.slimes.slice(0, 8)} me={null} layout={layout} hour={town.clock.hour} beam={beam} />;
 }

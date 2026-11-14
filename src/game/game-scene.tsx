@@ -8,14 +8,15 @@ import { COLOUR_STYLES, lookFor, type SlimeColour, type SlimeState } from "@/com
 import { SlimeModel, SLIME_MODEL_URL, type Reaction } from "@/components/slime/slime-model";
 import { addStudioReflections } from "@/components/slime/slime-stage";
 import type { ShopDto, TownSlimeDto } from "@/lib/dto";
-import { PLAZA_RADIUS, type Prop, type Solid, type Spot, type Vec2 } from "./layout";
+import { PLAZA_RADIUS, type Label, type Path, type Prop, type Solid, type Spot, type Vec2 } from "./layout";
 import { newMover, step, towards } from "./movement";
 import { TownWorld } from "./world";
 
 import { GameBus } from "./bus";
 
 /** Enough slimes to feel busy without crowding the view. */
-const MAX_CROWD = 24;
+/** Townsfolk drawn at once: lively, but never a crowd you can lose your slime in. */
+const MAX_CROWD = 8;
 
 type Me = { colour: SlimeColour; state: SlimeState; size: number; reaction: Reaction | null };
 
@@ -187,7 +188,7 @@ function SpectatorCamera() {
   const { camera } = useThree();
   useFrame(({ clock }) => {
     const a = clock.elapsedTime * 0.05;
-    camera.position.set(Math.sin(a) * 24, 13, Math.cos(a) * 24);
+    camera.position.set(Math.sin(a) * 30, 18, Math.cos(a) * 30);
     camera.lookAt(0, 1, 0);
   });
   return null;
@@ -220,7 +221,7 @@ export type GameSceneProps = {
   shops: ShopDto[];
   slimes: TownSlimeDto[];
   me: Me | null;
-  layout: { spots: Spot[]; solids: Solid[]; props: Prop[] };
+  layout: { spots: Spot[]; solids: Solid[]; props: Prop[]; paths: Path[]; labels: Label[] };
   hour: number;
   beam: Vec2 | null;
 };
@@ -237,7 +238,7 @@ export default function GameScene({ bus, shops, slimes, me, layout, hour, beam }
     >
       <Sky night={night} />
       <Suspense fallback={null}>
-        <TownWorld shops={shops} spots={layout.spots} props={layout.props} night={night} />
+        <TownWorld shops={shops} spots={layout.spots} props={layout.props} paths={layout.paths} labels={layout.labels} night={night} />
         <Crowd slimes={slimes.slice(0, MAX_CROWD)} solids={layout.solids} player={me ? bus : null} />
         {me ? <Player bus={bus} me={me} spots={layout.spots} solids={layout.solids} /> : <SpectatorCamera />}
         {beam && <Beam at={beam} />}

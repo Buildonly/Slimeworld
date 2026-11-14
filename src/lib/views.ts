@@ -119,7 +119,7 @@ export function eventsDto(world: World, n = 12): EventDto[] {
 }
 
 /** Slimes shown walking about town at once: enough to feel alive, few enough to follow. */
-export const TOWN_VIEW_SLIMES = 16;
+export const TOWN_VIEW_SLIMES = 8;
 
 /** Up to `max` slimes for the town scene: the viewer's own first, then other players', then town slimes. */
 export function townDto(world: World, viewerId: string | null, max = TOWN_VIEW_SLIMES): TownDto {

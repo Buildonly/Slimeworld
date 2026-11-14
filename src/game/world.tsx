@@ -6,7 +6,8 @@ import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import { shopColour } from "@/components/town/shop-style";
 import type { ShopDto } from "@/lib/dto";
-import type { Prop, Spot } from "./layout";
+import { Billboard } from "@react-three/drei";
+import { PLAZA_RADIUS, WALK_RADIUS, type Label, type Path, type Prop, type Spot } from "./layout";
 
 export const TOWN_MODEL_URL = "/models/town.glb";
 const ROOF_TINTS = ["#d65c45", "#3f8f8a", "#c98a3a", "#7b5aa6"];
@@ -62,6 +63,53 @@ function signTexture(text: string, closed: boolean): THREE.CanvasTexture {
   return tex;
 }
 
+/** Wide, friendly sign text for the floating place names. */
+function labelTexture(text: string): THREE.CanvasTexture {
+  const canvas = document.createElement("canvas");
+  canvas.width = 640;
+  canvas.height = 160;
+  const ctx = canvas.getContext("2d");
+  if (ctx) {
+    ctx.fillStyle = "rgba(255,250,240,0.94)";
+    ctx.beginPath();
+    ctx.roundRect(8, 8, 624, 144, 72);
+    ctx.fill();
+    ctx.fillStyle = "#3b2a1e";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = `700 76px ui-rounded, "Fredoka", system-ui, sans-serif`;
+    ctx.fillText(text, 320, 86);
+  }
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+/** A place name floating over it, always turned toward the camera. */
+function FloatingLabel({ label }: { label: Label }) {
+  const mat = useMemo(() => new THREE.MeshBasicMaterial({ map: labelTexture(label.text), transparent: true, depthWrite: false }), [label.text]);
+  return (
+    <Billboard position={[label.pos.x, label.height, label.pos.z]}>
+      <mesh material={mat} renderOrder={5}>
+        <planeGeometry args={[3, 0.75]} />
+      </mesh>
+    </Billboard>
+  );
+}
+
+/** Stone paths from the square out to each district. */
+function PathStrip({ path }: { path: Path }) {
+  const dx = path.to.x - path.from.x;
+  const dz = path.to.z - path.from.z;
+  const len = Math.hypot(dx, dz);
+  return (
+    <mesh position={[(path.from.x + path.to.x) / 2, 0.02, (path.from.z + path.to.z) / 2]} rotation={[-Math.PI / 2, 0, Math.atan2(dx, dz)]} receiveShadow>
+      <planeGeometry args={[path.width, len]} />
+      <meshStandardMaterial color="#cdb48b" roughness={1} />
+    </mesh>
+  );
+}
+
 function Stall({ kit, shop, spot }: { kit: Kit; shop: ShopDto; spot: Spot }) {
   const closed = shop.status === "closed";
   const object = useMemo(
@@ -108,16 +156,14 @@ function NightGlow({ root, night }: { root: React.RefObject<THREE.Group | null>;
   return null;
 }
 
-export function TownWorld({ shops, spots, props, night }: { shops: ShopDto[]; spots: Spot[]; props: Prop[]; night: boolean }) {
+export function TownWorld({ shops, spots, props, paths, labels, night }: { shops: ShopDto[]; spots: Spot[]; props: Prop[]; paths: Path[]; labels: Label[]; night: boolean }) {
   const kit = useKit();
   const root = useRef<THREE.Group>(null);
   const fixed = useMemo(() => {
     const jobs = spots.find((s) => s.kind === "jobs");
     const races = spots.find((s) => s.kind === "races");
     return {
-      // Warmer cobbles than the Blender preview: reads better under game lighting.
-      ground: cloneWith(kit.Ground!, { Ground: "#d8c19a", StoneDark: "#b79d76" }),
-      meadow: cloneWith(kit.Meadow!, { Grass: "#7fbf5a" }),
+      // The square keeps its cobbles; the wider town gets simple, calm ground.
       fountain: kit.Fountain!.clone(true),
       board: jobs ? { obj: kit.JobBoard!.clone(true), spot: jobs } : null,
       arch: races ? { obj: kit.RaceArch!.clone(true), spot: races } : null,
@@ -126,8 +172,25 @@ export function TownWorld({ shops, spots, props, night }: { shops: ShopDto[]; sp
 
   return (
     <group ref={root}>
-      <primitive object={fixed.meadow} />
-      <primitive object={fixed.ground} />
+      <mesh rotation-x={-Math.PI / 2} position-y={-0.02} receiveShadow>
+        <circleGeometry args={[120, 48]} />
+        <meshStandardMaterial color="#8fcf6a" roughness={1} />
+      </mesh>
+      <mesh rotation-x={-Math.PI / 2} position-y={0} receiveShadow>
+        <circleGeometry args={[WALK_RADIUS + 1, 64]} />
+        <meshStandardMaterial color="#a9d97f" roughness={1} />
+      </mesh>
+      {/* The Town Square: one calm stone circle, no scattered tiles. */}
+      <mesh rotation-x={-Math.PI / 2} position-y={0.01} receiveShadow>
+        <circleGeometry args={[PLAZA_RADIUS, 64]} />
+        <meshStandardMaterial color="#e3cfa6" roughness={1} />
+      </mesh>
+      {paths.map((p, i) => (
+        <PathStrip key={i} path={p} />
+      ))}
+      {labels.map((l) => (
+        <FloatingLabel key={l.text} label={l} />
+      ))}
       <primitive object={fixed.fountain} />
       {fixed.board && <primitive object={fixed.board.obj} position={[fixed.board.spot.pos.x, 0, fixed.board.spot.pos.z]} rotation={[0, fixed.board.spot.facing, 0]} />}
       {fixed.arch && <primitive object={fixed.arch.obj} position={[fixed.arch.spot.pos.x, 0, fixed.arch.spot.pos.z]} rotation={[0, fixed.arch.spot.facing, 0]} />}

@@ -84,7 +84,7 @@ describe("town layout spacing", () => {
     const jobs = spots.find((s) => s.kind === "jobs")!;
     const races = spots.find((s) => s.kind === "races")!;
     expect(Math.hypot(jobs.pos.x - races.pos.x, jobs.pos.z - races.pos.z)).toBeGreaterThan(4);
-    const start = spawnPoint(6);
+    const start = spawnPoint();
     for (const s of solids) expect(Math.hypot(start.x - s.x, start.z - s.z)).toBeGreaterThan(s.r + 0.6);
   });
 });
@@ -93,7 +93,7 @@ describe("first view", () => {
   it("has no lantern or stall between the start point and the camera behind it", async () => {
     const { spawnPoint } = await import("./layout");
     const { solids } = townLayout(["a", "b", "c", "d", "e", "f"]);
-    const p = spawnPoint(6);
+    const p = spawnPoint();
     const len = Math.hypot(p.x, p.z);
     const back = { x: p.x / len, z: p.z / len }; // camera sits behind, away from the fountain
     for (const s of solids) {
