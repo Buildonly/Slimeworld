@@ -100,6 +100,9 @@ export function hatchSlime(world: World, opts: { name?: string; ownerId: string 
     lastCareTick: world.tick,
     memory: ["I hatched!"],
     friends: [],
+    wins: 0,
+    earnedTotal: 0n,
+    cheers: 0,
   };
   world.slimes[slime.id] = slime;
   return slime;

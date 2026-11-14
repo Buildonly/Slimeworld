@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FastForward, LogOut, ShieldCheck } from "lucide-react";
 import { DecisionItem } from "@/components/log/decision-item";
+import { BuiltOnNear } from "@/components/brand/near-logo";
 import { SignIn } from "@/components/sign-in";
 import { MarketScreen } from "@/components/market/market-screen";
 import { RulesForm } from "@/components/rules/rules-screen";
@@ -93,6 +94,7 @@ export function MenuSheet({ slime, guest, onClose, onSaved }: { slime: SlimeDto;
           >
             <LogOut size={18} /> Sign out
           </button>
+          <BuiltOnNear className="justify-center pt-2 text-sm text-ink-soft" />
         </div>
       )}
     </GameSheet>

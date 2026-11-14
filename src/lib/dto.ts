@@ -68,7 +68,28 @@ export type ShopDto = {
   investors: number;
 };
 
-export type TownSlimeDto = { id: string; name: string; colour: SlimeColour; state: MoneyState; size: number; mine: boolean; working: boolean };
+export type TownSlimeDto = { id: string; name: string; colour: SlimeColour; state: MoneyState; size: number; mine: boolean; working: boolean; player: boolean };
+
+/** A slime's public page: what anyone may see. */
+export type ProfileDto = {
+  id: string;
+  name: string;
+  colour: SlimeColour;
+  personality: string;
+  state: MoneyState;
+  asleep: boolean;
+  size: number;
+  ageDays: number;
+  wallet: BitsStr;
+  earnedTotal: BitsStr;
+  wins: number;
+  cheers: number;
+  keeper: string;
+  /** Raised by a real player (so it can get gifts). */
+  player: boolean;
+  mine: boolean;
+  memory: string[];
+};
 
 export type EventDto = { tick: number; kind: string; text: string };
 

@@ -5,6 +5,7 @@ import { chainOps, slimeAccounts } from "@/db/schema";
 import { cheatProofs } from "@/proofs/cheat-proofs";
 import { explorer, formatBits } from "@/lib/format";
 import { YOCTO_PER_BIT } from "@/economy/config";
+import { BuiltOnNear } from "@/components/brand/near-logo";
 import { serverEnv } from "@/lib/env";
 import { nearProvider } from "@/near/client";
 import { contractIds } from "@/near/contracts";
@@ -45,6 +46,7 @@ export default async function Page() {
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 py-8">
       <header className="flex flex-col gap-2">
+        <BuiltOnNear className="text-sm font-semibold text-ink-soft" />
         <h1 className="text-3xl font-bold">Fair play, checked by the town</h1>
         <p className="text-ink-soft">
           Every slime spends inside its owner&apos;s rules. The town contract checks each payment again, so nobody can break them: not a slime, not a player, not the game.

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { FastForward } from "lucide-react";
 import { SignIn } from "@/components/sign-in";
 import { SlimeMark } from "@/components/shell/logo";
+import { BuiltOnNear } from "@/components/brand/near-logo";
 import { LoadingScreen } from "@/game/hud/loading-screen";
 import { GameSheet } from "@/game/panels/sheet";
 import { WorldView } from "@/game/world-view";
@@ -33,7 +34,7 @@ export function Landing({ devLogin }: { devLogin: boolean }) {
             </h1>
             <p className="mt-1 max-w-xs text-base md:text-lg">A town of slimes that earn, spend and save, all by themselves.</p>
           </div>
-          <span className="whitespace-nowrap rounded-full bg-black/45 px-3 py-1.5 text-sm font-semibold text-white backdrop-blur">Built on NEAR</span>
+          <BuiltOnNear className="whitespace-nowrap rounded-full bg-black/45 px-3 py-1.5 text-sm font-semibold text-white backdrop-blur" />
         </div>
 
         <div className="mt-auto flex flex-col items-center gap-4 md:flex-row md:items-end md:justify-between">

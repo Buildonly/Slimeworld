@@ -1,8 +1,9 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { GIFT_MAX } from "@/economy/config";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import { Hand, Menu, Mic, Utensils } from "lucide-react";
+import { Hand, Menu, Mic, Trophy, Utensils } from "lucide-react";
 import type { Reaction } from "@/components/slime/slime-model";
 import { TalkPanel } from "@/components/home/talk-panel";
 import { useToast } from "@/components/ui/toast";
@@ -19,13 +20,14 @@ import { spawnPoint, townLayout, type Spot } from "./layout";
 import { CoinsSheet } from "./panels/coins-sheet";
 import { JobsSheet } from "./panels/jobs-sheet";
 import { MenuSheet } from "./panels/menu-sheet";
+import { SquareSheet } from "./panels/square-sheet";
 import { RaceSheet } from "./panels/race-sheet";
 import { ShopSheet } from "./panels/shop-sheet";
 import { useControls } from "./use-controls";
 
 const GameScene = dynamic(() => import("./game-scene"), { ssr: false });
 
-type Panel = { kind: "shop"; id: string } | { kind: "jobs" } | { kind: "races" } | { kind: "menu" } | { kind: "coins" } | null;
+type Panel = { kind: "shop"; id: string } | { kind: "jobs" } | { kind: "races" } | { kind: "menu" } | { kind: "coins" } | { kind: "square" } | null;
 
 const SEASON_EMOJI: Record<string, string> = { calm: "🌤️", heatwave: "🔥", harvest: "🌾", festival: "🎪" };
 
@@ -48,7 +50,7 @@ function spotLabel(spot: Spot, town: TownDto): { title: string; action: string }
   }
   if (spot.kind === "jobs") return { title: "Job board", action: "Find work" };
   if (spot.kind === "races") return { title: "Race ground", action: "Races" };
-  return { title: "Fountain", action: "Town news" };
+  return { title: "Town square", action: "Ranks & friends" };
 }
 
 /** The game: your slime in the town. Walk up to things to use them. */
@@ -127,7 +129,7 @@ export function GameScreen() {
     if (nearby.kind === "shop") setPanel({ kind: "shop", id: nearby.id });
     else if (nearby.kind === "jobs") setPanel({ kind: "jobs" });
     else if (nearby.kind === "races") setPanel({ kind: "races" });
-    else setPanel({ kind: "menu" });
+    else setPanel({ kind: "square" });
   }, [nearby]);
 
   useControls(bus, stage, use, panel === null && !talking);
@@ -175,6 +177,9 @@ export function GameScreen() {
               <span className="hidden rounded-full bg-card/85 px-3 py-2 text-sm shadow-lg backdrop-blur sm:inline">
                 {night ? "🌙" : SEASON_EMOJI[t.clock.season] ?? "🌤️"} Day {t.clock.day} · {String(t.clock.hour).padStart(2, "0")}:00
               </span>
+              <button type="button" aria-label="Ranks and friends" onClick={() => setPanel({ kind: "square" })} className="pointer-events-auto grid h-10 w-10 place-items-center rounded-full bg-card/85 shadow-lg backdrop-blur">
+                <Trophy size={20} />
+              </button>
               <button type="button" aria-label="Menu" onClick={() => setPanel({ kind: "menu" })} className="pointer-events-auto grid h-10 w-10 place-items-center rounded-full bg-card/85 shadow-lg backdrop-blur">
                 <Menu size={20} />
               </button>
@@ -278,6 +283,7 @@ export function GameScreen() {
           onGive={(amount) => act({ action: "topup", amount }, "Coins! I'll spend them wisely.", "spin")}
         />
       )}
+      {panel?.kind === "square" && <SquareSheet slimes={t.slimes} events={t.events} giftMax={Number(GIFT_MAX / 100n)} onClose={() => setPanel(null)} onChanged={() => void Promise.all([home.refresh(), town.refresh()])} />}
       {panel?.kind === "menu" && <MenuSheet slime={slime} guest={home.data.player?.guest ?? false} onClose={() => setPanel(null)} onSaved={home.refresh} />}
     </div>
   );

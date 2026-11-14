@@ -6,7 +6,7 @@ import { busyness } from "@/economy/shops";
 import { isLonely } from "@/economy/slimes";
 import { moneyState } from "@/economy/state";
 import type { Shop, Slime, World } from "@/economy/types";
-import type { ClockDto, DecisionDto, EventDto, ShopDto, SlimeDto, TownDto, WorldDto } from "@/lib/dto";
+import type { ClockDto, DecisionDto, EventDto, ProfileDto, ShopDto, SlimeDto, TownDto, WorldDto } from "@/lib/dto";
 
 export function clock(world: World): ClockDto {
   return {
@@ -88,6 +88,32 @@ export function shopDto(shop: Shop): ShopDto {
   };
 }
 
+/** Raised by a real player rather than one of the town's own simulated keepers. */
+export function isPlayerSlime(world: World, s: Slime): boolean {
+  return Boolean(s.ownerId && world.players[s.ownerId]?.care === "real");
+}
+
+export function profileDto(world: World, s: Slime, viewerId: string | null): ProfileDto {
+  return {
+    id: s.id,
+    name: s.name,
+    colour: s.colour,
+    personality: s.personality,
+    state: moneyState(s),
+    asleep: s.asleep,
+    size: s.size,
+    ageDays: Math.floor((world.tick - s.bornTick) / TICKS_PER_DAY),
+    wallet: s.wallet.toString(),
+    earnedTotal: s.earnedTotal.toString(),
+    wins: s.wins,
+    cheers: s.cheers,
+    keeper: s.ownerId ? (world.players[s.ownerId]?.name ?? "A keeper") : "Town slime",
+    player: isPlayerSlime(world, s),
+    mine: viewerId !== null && s.ownerId === viewerId,
+    memory: s.memory.slice(-5),
+  };
+}
+
 export function eventsDto(world: World, n = 12): EventDto[] {
   return world.events.slice(-n).reverse().map((e) => ({ tick: e.tick, kind: e.kind, text: e.text }));
 }
@@ -96,11 +122,15 @@ export function eventsDto(world: World, n = 12): EventDto[] {
 export function townDto(world: World, viewerId: string | null, max = 60): TownDto {
   const all = Object.values(world.slimes);
   const mine = all.filter((s) => viewerId && s.ownerId === viewerId);
-  const others = all.filter((s) => !viewerId || s.ownerId !== viewerId).slice(0, Math.max(0, max - mine.length));
+  // Other players' slimes first, so friends always show up in town.
+  const others = all
+    .filter((s) => !viewerId || s.ownerId !== viewerId)
+    .sort((a, b) => Number(isPlayerSlime(world, b)) - Number(isPlayerSlime(world, a)))
+    .slice(0, Math.max(0, max - mine.length));
   return {
     clock: clock(world),
     shops: Object.values(world.shops).map(shopDto),
-    slimes: [...mine, ...others].map((s) => ({ id: s.id, name: s.name, colour: s.colour, state: moneyState(s), size: s.size, mine: s.ownerId === viewerId && viewerId !== null, working: Boolean(s.job) })),
+    slimes: [...mine, ...others].map((s) => ({ id: s.id, name: s.name, colour: s.colour, state: moneyState(s), size: s.size, mine: s.ownerId === viewerId && viewerId !== null, working: Boolean(s.job), player: isPlayerSlime(world, s) })),
     events: eventsDto(world),
     jobs: [...world.jobs]
       .sort((a, b) => (b.wage > a.wage ? 1 : b.wage < a.wage ? -1 : 0))

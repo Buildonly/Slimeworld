@@ -2,6 +2,7 @@
 
 import { useProgress } from "@react-three/drei";
 import { useEffect, useState } from "react";
+import { BuiltOnNear } from "@/components/brand/near-logo";
 import { SlimeMark } from "@/components/shell/logo";
 
 const LINES = ["Waking the slimes…", "Polishing the stalls…", "Counting coins…", "Filling the fountain…", "Lighting the lanterns…"];
@@ -52,6 +53,7 @@ export function LoadingScreen({ done }: { done: boolean }) {
           Taking a while? Jump in
         </button>
       )}
+      <BuiltOnNear className="absolute bottom-8 text-sm text-ink-soft" />
       {canSkip && !done && <p className="max-w-64 text-center text-sm text-ink-soft">Still connecting. A slow network can take a little longer.</p>}
     </div>
   );

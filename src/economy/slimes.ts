@@ -201,6 +201,7 @@ export async function slimeTick(world: World, slime: Slime, mind: Mind, out: Out
     record(world, { from: shopParty(buyer.shop.id), to: slimeParty(slime.id), amount: paid, kind: "sale", memo: `${units} ${itemId}` });
     slime.wallet += paid - fee;
     slime.earnedToday += paid - fee;
+    slime.earnedTotal += paid - fee;
     decide(world, slime, out, {
       action: "sell",
       target: itemId,

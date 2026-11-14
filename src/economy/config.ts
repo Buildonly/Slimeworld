@@ -224,6 +224,15 @@ export const MAX_SIZE = 1.4;
 export const OWNER_CARE_EVERY: Record<"devoted" | "casual" | "absent", number> = { devoted: 12, casual: 72, absent: 0 };
 /** Joy from a pat or play by the owner. */
 export const OWNER_PLAY_JOY = 25;
+
+// ---------- social ----------
+
+/** Happiness a slime gets when another player cheers it. */
+export const CHEER_JOY = 8;
+/** Most coins one gift to another player's slime can carry. */
+export const GIFT_MAX = coins(50);
+/** Gifts one player can send per real day. */
+export const GIFTS_PER_DAY = 5;
 /** Simulated owners top up a slime that drops below this. */
 export const OWNER_TOP_UP_BELOW: Bits = coins(40);
 export const OWNER_TOP_UP_AMOUNT: Bits = coins(80);

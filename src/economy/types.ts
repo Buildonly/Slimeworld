@@ -44,6 +44,12 @@ export type Slime = {
   /** Short life log, newest last. */
   memory: string[];
   friends: string[];
+  /** Races and puzzle contests won. */
+  wins: number;
+  /** Every coin earned since hatching: wages, prizes and sales. */
+  earnedTotal: Bits;
+  /** Cheers from other players. */
+  cheers: number;
 };
 
 export type PricePoint = { price: Bits; reason: string };
@@ -98,7 +104,9 @@ export type GameEventKind =
   | "asleep"
   | "woke"
   | "fed_by_friend"
-  | "hoard";
+  | "hoard"
+  | "cheered"
+  | "gift";
 
 export type GameEvent = { tick: number; kind: GameEventKind; text: string; shopId?: string; slimeId?: string };
 

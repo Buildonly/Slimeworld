@@ -2,6 +2,7 @@
 
 import { Check, Copy } from "lucide-react";
 import { useEffect, useState } from "react";
+import { NearMark } from "@/components/brand/near-logo";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
 import { formatBits } from "@/lib/format";
@@ -204,7 +205,7 @@ export function CoinsSheet({ slimeName, slimeCoins, playerCoins, busy, onGive, o
             >
               {starting ? "Getting your address…" : "Get my deposit address"}
             </Button>
-          <p className="text-xs text-ink-soft">Swapped by NEAR Intents. If a swap fails, the money goes straight back to you. Coins are for spending in town and can&apos;t be cashed out.</p>
+          <p className="flex flex-wrap items-center gap-1 text-xs text-ink-soft"><NearMark className="h-3 w-3" /> Swapped by NEAR Intents. If a swap fails, the money goes straight back to you. Coins are for spending in town and can&apos;t be cashed out.</p>
         </div>
       )}
     </GameSheet>

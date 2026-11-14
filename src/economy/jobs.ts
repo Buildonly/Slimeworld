@@ -77,6 +77,7 @@ export function finishJob(world: World, slime: Slime): void {
     slime.wallet += job.wage;
     record(world, { from: job.shopId ? shopParty(job.shopId) : { kind: "town" }, to: slimeParty(slime.id), amount: job.wage, kind: "wage", memo: `${job.kind} ${job.jobId}` });
     slime.earnedToday += job.wage;
+    slime.earnedTotal += job.wage;
     if (def && def.skill !== "size") slime.skills[def.skill] = Math.min(100, slime.skills[def.skill] + JOB_SKILL_GAIN);
     remember(slime, `I did a ${def?.title.toLowerCase() ?? "job"}${where} and earned ${formatCoins(job.wage)} coins.`);
     if (job.kind === "delivery" && chance(world.rng, DELIVERY_FIND_CHANCE_BPS)) {
@@ -153,6 +154,7 @@ export function settleContests(world: World, out: { events: GameEvent[] }): void
     const second = field.length > 1 ? pickWeighted(world.rng, weights.map((w, i) => (i === first ? 0 : w))) : -1;
     const runnerUp = field[second];
     const top = runnerUp ? (prize * BigInt(CONTEST_WINNER_SHARE_BPS)) / BigInt(BPS) : prize;
+    winner.wins += 1;
     pay(world, winner, top, `I won the ${CONTESTS[c.kind].title.toLowerCase()}! ${formatCoins(top)} coins!`);
     if (runnerUp) pay(world, runnerUp, prize - top, `I came second in the ${CONTESTS[c.kind].title.toLowerCase()}.`);
     for (const s of field) if (s !== winner && s !== runnerUp) remember(s, `I lost the ${CONTESTS[c.kind].title.toLowerCase()} to ${winner.name}.`);
@@ -168,5 +170,6 @@ function pay(world: World, slime: Slime, amount: Bits, line: string): void {
   record(world, { from: { kind: "town" }, to: slimeParty(slime.id), amount, kind: "prize", memo: "contest prize" });
   slime.wallet += amount;
   slime.earnedToday += amount;
+  slime.earnedTotal += amount;
   remember(slime, line);
 }

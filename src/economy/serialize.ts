@@ -16,4 +16,13 @@ export function fromJson<T>(text: string): T {
 }
 
 export const worldToJson = (w: World) => toJson(w);
-export const worldFromJson = (text: string) => fromJson<World>(text);
+export function worldFromJson(text: string): World {
+  const world = fromJson<World>(text);
+  // Worlds saved before these fields existed start them at zero.
+  for (const s of Object.values(world.slimes)) {
+    s.wins ??= 0;
+    s.earnedTotal ??= 0n;
+    s.cheers ??= 0;
+  }
+  return world;
+}

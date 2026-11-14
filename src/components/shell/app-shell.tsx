@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FastForward, Globe2, Home, ScrollText, ShoppingBasket, Store } from "lucide-react";
+import { FastForward, Globe2, Home, ScrollText, ShoppingBasket, Store, Trophy } from "lucide-react";
 import type { ClockDto } from "@/lib/dto";
 import { explorer, formatBits } from "@/lib/format";
 import { usePoll } from "@/lib/use-poll";
+import { BuiltOnNear } from "@/components/brand/near-logo";
 import { SlimeMark } from "./logo";
 import { ThemeToggle } from "./theme-toggle";
 
@@ -15,6 +16,7 @@ const NAV = [
   { href: "/", label: "Home", icon: Home },
   { href: "/town", label: "Town", icon: Store },
   { href: "/market", label: "Market", icon: ShoppingBasket },
+  { href: "/ranks", label: "Ranks", icon: Trophy },
   { href: "/log", label: "Log", icon: ScrollText },
   { href: "/world", label: "World", icon: Globe2 },
 ];
@@ -70,19 +72,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <footer className="hidden pb-6 text-center text-sm text-ink-soft md:block">
         {data && (
           <a href={explorer("address", data.town)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 hover:underline">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-accent" /> Built on NEAR · see the town&apos;s money live
+            <span className="h-2 w-2 animate-pulse rounded-full bg-accent" /> <BuiltOnNear /> · see the town&apos;s money live
           </a>
         )}
       </footer>
 
       <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
-        <ul className="grid grid-cols-5">
+        <ul className="grid grid-cols-6">
           {NAV.map((n) => (
             <li key={n.href}>
               <Link
                 href={n.href}
                 aria-current={active(n.href) ? "page" : undefined}
-                className="flex flex-col items-center gap-0.5 py-2.5 text-xs text-ink-soft aria-[current=page]:text-accent"
+                className="flex flex-col items-center gap-0.5 py-2.5 text-[11px] text-ink-soft aria-[current=page]:text-accent"
               >
                 <n.icon size={22} strokeWidth={2.2} />
                 {n.label}
