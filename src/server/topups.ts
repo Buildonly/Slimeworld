@@ -84,13 +84,18 @@ function view(row: typeof topups.$inferSelect, coin?: TopUpCoin | null): TopUpVi
   };
 }
 
-export async function startTopUp(db: Db, playerId: string, coinId: string, amount: string): Promise<TopUpView | string> {
+export async function startTopUp(db: Db, playerId: string, coinId: string, amount: string, refundTo: string): Promise<TopUpView | string> {
   const to = treasury();
   if (!topUpsLive() || !to) return "Top ups are not open yet.";
   const coin = await findCoin(coinId);
   const units = coin ? parseUnits(amount, coin.decimals) : null;
   if (!coin || !units || units <= 0n) return "Enter an amount.";
-  const q = await quote({ originAsset: coin.assetId, amount: units, recipient: to, dry: false });
+  let q;
+  try {
+    q = await quote({ originAsset: coin.assetId, amount: units, recipient: to, refundTo, dry: false });
+  } catch (err) {
+    return err instanceof Error && /refund|address/i.test(err.message) ? `That doesn't look like a ${coin.chain.toUpperCase()} address. Check it and try again.` : "Top ups are unavailable right now. Try again soon.";
+  }
   if (!q.quote.depositAddress) return "No deposit address came back. Try again.";
   const [row] = await db
     .insert(topups)

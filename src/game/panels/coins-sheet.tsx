@@ -45,7 +45,7 @@ function TopUpTracker({ start, onDone }: { start: TopUp; onDone: () => void }) {
     if (credited) onDone();
   }, [credited, onDone]);
   if (t.status === "REFUNDED" || t.status === "FAILED")
-    return <p className="rounded-2xl bg-danger/10 p-3 text-danger">That swap didn&apos;t go through. Your money is safe with the town: tell us top up #{t.id} and we&apos;ll send it back.</p>;
+    return <p className="rounded-2xl bg-danger/10 p-3 text-danger">That swap didn&apos;t go through, so your money was sent back to the address you gave.</p>;
   return (
     <div className="flex flex-col gap-3">
       {!credited && (
@@ -94,6 +94,7 @@ export function CoinsSheet({ slimeName, slimeCoins, playerCoins, busy, onGive, o
   const [picked, setPicked] = useState<string | null>(null);
   const coinId = picked ?? data?.coins[0]?.id ?? "";
   const [amount, setAmount] = useState("");
+  const [refundTo, setRefundTo] = useState("");
   const [preview, setPreview] = useState<Preview | string | null>(null);
   const [active, setActive] = useState<TopUp | null>(null);
   const [starting, setStarting] = useState(false);
@@ -178,12 +179,24 @@ export function CoinsSheet({ slimeName, slimeCoins, playerCoins, busy, onGive, o
               You get about <b>🪙 {formatBits(preview.coins)}</b> coins ({preview.receiveNear.slice(0, 6)} NEAR){preview.usd ? ` for ~$${Number(preview.usd).toFixed(2)}` : ""}. Takes about {minutes(preview.seconds)}.
             </p>
           ) : null}
+          <label className="flex flex-col gap-1">
+            <span className="text-sm text-ink-soft">Your {data?.coins.find((c) => c.id === coinId)?.chain.toUpperCase() ?? ""} address, the one you pay from</span>
+            <input
+              value={refundTo}
+              onChange={(e) => setRefundTo(e.target.value.trim())}
+              placeholder="Only used to send it back if a swap fails"
+              autoComplete="off"
+              spellCheck={false}
+              className="rounded-xl border border-line bg-card px-3 py-2 font-mono text-sm"
+              aria-label="Your address for refunds"
+            />
+          </label>
           <Button
               size="lg"
-              disabled={starting || typeof preview !== "object" || preview === null}
+              disabled={starting || typeof preview !== "object" || preview === null || refundTo.length < 10}
               onClick={async () => {
                 setStarting(true);
-                const r = await post<{ ok: boolean; topUp?: TopUp; error?: string }>("/api/topup", { coinId, amount });
+                const r = await post<{ ok: boolean; topUp?: TopUp; error?: string }>("/api/topup", { coinId, amount, refundTo });
                 setStarting(false);
                 if (r.ok && r.topUp) setActive(r.topUp);
                 else toast(r.error ?? "Could not start the top up.", "error");
@@ -191,7 +204,7 @@ export function CoinsSheet({ slimeName, slimeCoins, playerCoins, busy, onGive, o
             >
               {starting ? "Getting your address…" : "Get my deposit address"}
             </Button>
-          <p className="text-xs text-ink-soft">Swapped by NEAR Intents. Coins are for spending in town and can&apos;t be cashed out.</p>
+          <p className="text-xs text-ink-soft">Swapped by NEAR Intents. If a swap fails, the money goes straight back to you. Coins are for spending in town and can&apos;t be cashed out.</p>
         </div>
       )}
     </GameSheet>

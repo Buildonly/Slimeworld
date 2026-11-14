@@ -45,7 +45,7 @@ export type ClockDto = { tick: number; day: number; hour: number; season: string
 
 export type HomeDto = {
   clock: ClockDto;
-  player: { id: string; wallet: BitsStr; nearAccountId: string | null } | null;
+  player: { id: string; wallet: BitsStr; nearAccountId: string | null; guest: boolean } | null;
   slimes: SlimeDto[];
   recent: Record<string, DecisionDto[]>;
   feedPrice: BitsStr | null;

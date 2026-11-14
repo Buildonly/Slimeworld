@@ -6,10 +6,10 @@ import { newId } from "@/lib/ids";
 import { encryptKey } from "@/near/keys";
 import { createPlayerAccount } from "@/near/player-account";
 
-export type PublicPlayer = { id: string; email: string | null; nearAccountId: string | null };
+export type PublicPlayer = { id: string; email: string | null; nearAccountId: string | null; guest: boolean };
 
 function toPublic(p: typeof players.$inferSelect): PublicPlayer {
-  return { id: p.id, email: p.email, nearAccountId: p.nearAccountId };
+  return { id: p.id, email: p.email, nearAccountId: p.nearAccountId, guest: p.authId.startsWith("guest:") };
 }
 
 /** Find the player for a sign-in identity, or make a new one. */
@@ -27,6 +27,26 @@ export async function findOrCreatePlayer(db: Db, authId: string, email: string |
     found.email = email;
   }
   return toPublic(found);
+}
+
+/**
+ * Sign in from a guest session: if this identity is new, the guest becomes
+ * that account and keeps its slimes and coins. If the identity already has a
+ * player, that player is used and the guest is left as it was.
+ */
+export async function signInFrom(db: Db, currentId: string | null, authId: string, email: string | null): Promise<PublicPlayer> {
+  if (currentId) {
+    const [taken] = await db.select({ id: players.id }).from(players).where(eq(players.authId, authId));
+    if (!taken) {
+      const [upgraded] = await db
+        .update(players)
+        .set({ authId, email })
+        .where(sql`${players.id} = ${currentId} and ${players.authId} like 'guest:%'`)
+        .returning();
+      if (upgraded) return toPublic(upgraded);
+    }
+  }
+  return findOrCreatePlayer(db, authId, email);
 }
 
 export async function getPlayer(db: Db, id: string): Promise<PublicPlayer | null> {

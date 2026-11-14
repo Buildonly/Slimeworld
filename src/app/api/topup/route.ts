@@ -18,7 +18,7 @@ export async function GET() {
   });
 }
 
-const schema = z.object({ coinId: z.string().min(1).max(200), amount: z.string().trim().regex(/^\d{1,9}(\.\d{1,18})?$/) });
+const schema = z.object({ refundTo: z.string().trim().min(10).max(128).regex(/^[A-Za-z0-9:._-]+$/), coinId: z.string().min(1).max(200), amount: z.string().trim().regex(/^\d{1,9}(\.\d{1,18})?$/) });
 
 /** Start a top up: get a deposit address on the coin's own chain. */
 export async function POST(req: Request) {
@@ -26,8 +26,8 @@ export async function POST(req: Request) {
   if (!playerId) return fail(401, "Please sign in.");
   if (!(await allow(db(), `topup:${playerId}`, 6, 300))) return fail(429, "Too many top ups at once. Try again in a few minutes.");
   const body = await readJson(req, schema);
-  if (!body) return fail(400, "Enter an amount.");
-  const r = await startTopUp(db(), playerId, body.coinId, body.amount).catch(() => "Top ups are unavailable right now. Try again soon.");
+  if (!body) return fail(400, "Enter an amount and your address for refunds.");
+  const r = await startTopUp(db(), playerId, body.coinId, body.amount, body.refundTo).catch(() => "Top ups are unavailable right now. Try again soon.");
   if (typeof r === "string") return fail(409, r);
   return Response.json({ ok: true, topUp: r });
 }

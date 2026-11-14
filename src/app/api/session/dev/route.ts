@@ -2,9 +2,9 @@ import { z } from "zod";
 import { db } from "@/db/client";
 import { serverEnv } from "@/lib/env";
 import { clientIp, fail, readJson } from "@/server/http";
-import { ensureNearAccount, findOrCreatePlayer } from "@/server/players";
+import { ensureNearAccount, signInFrom } from "@/server/players";
 import { allow } from "@/server/rate-limit";
-import { setSessionCookie } from "@/server/session";
+import { currentPlayerId, setSessionCookie } from "@/server/session";
 
 const bodySchema = z.object({ email: z.email().max(200) });
 
@@ -19,7 +19,7 @@ export async function POST(req: Request) {
   const body = await readJson(req, bodySchema);
   if (!body) return fail(400, "Please enter an email.");
 
-  const player = await findOrCreatePlayer(db(), `dev:${body.email.toLowerCase()}`, body.email.toLowerCase());
+  const player = await signInFrom(db(), await currentPlayerId(), `dev:${body.email.toLowerCase()}`, body.email.toLowerCase());
   await setSessionCookie(player.id);
   try {
     return Response.json({ ok: true, player: await ensureNearAccount(db(), player.id) });

@@ -3,9 +3,9 @@ import { db } from "@/db/client";
 import { emailFromIdentityToken, verifyPrivyAccessToken } from "@/auth/privy";
 import { serverEnv } from "@/lib/env";
 import { clientIp, fail, readJson } from "@/server/http";
-import { ensureNearAccount, findOrCreatePlayer } from "@/server/players";
+import { ensureNearAccount, signInFrom } from "@/server/players";
 import { allow } from "@/server/rate-limit";
-import { clearSessionCookie, setSessionCookie } from "@/server/session";
+import { clearSessionCookie, currentPlayerId, setSessionCookie } from "@/server/session";
 
 const bodySchema = z.object({
   accessToken: z.string().min(10).max(4000),
@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     return fail(401, "Your sign in expired. Please try again.");
   }
 
-  const player = await findOrCreatePlayer(db(), authId, email);
+  const player = await signInFrom(db(), await currentPlayerId(), authId, email);
   await setSessionCookie(player.id);
   try {
     return Response.json({ ok: true, player: await ensureNearAccount(db(), player.id) });

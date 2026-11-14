@@ -97,13 +97,13 @@ function GuestSignIn({ onStatus }: { onStatus: (s: Status) => void }) {
   );
 }
 
-export function SignIn({ devLogin }: { devLogin: boolean }) {
+export function SignIn({ devLogin, guest = true }: { devLogin: boolean; guest?: boolean }) {
   const [status, setStatus] = useState<Status>({ kind: "idle" });
   return (
     <div className="flex w-full flex-col items-center gap-3">
       {privyEnabled && <PrivySignIn onStatus={setStatus} />}
       {devLogin && <DevSignIn onStatus={setStatus} />}
-      <GuestSignIn onStatus={setStatus} />
+      {guest && <GuestSignIn onStatus={setStatus} />}
       <p role="status" aria-live="polite" className={status.kind === "error" ? "text-danger" : "text-ink-soft"}>
         {status.kind === "idle" ? "Free to play. No wallet app needed." : status.text}
       </p>

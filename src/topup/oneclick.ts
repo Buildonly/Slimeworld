@@ -58,7 +58,7 @@ function headers(): Record<string, string> {
  * the NEAR Intents balance of `recipient`. `dry: true`
  * just prices it.
  */
-export async function quote(args: { originAsset: string; amount: bigint; recipient: string; dry: boolean; fetcher?: typeof fetch }): Promise<Quote> {
+export async function quote(args: { originAsset: string; amount: bigint; recipient: string; refundTo?: string; dry: boolean; fetcher?: typeof fetch }): Promise<Quote> {
   const { destination } = await liveTokens(args.fetcher);
   const res = await (args.fetcher ?? fetch)(`${oneClickUrl()}/v0/quote`, {
     method: "POST",
@@ -71,10 +71,12 @@ export async function quote(args: { originAsset: string; amount: bigint; recipie
       depositType: "ORIGIN_CHAIN",
       destinationAsset: destination.assetId,
       amount: args.amount.toString(),
-      // Delivered to (and, if the swap fails, refunded to) the recipient's
-      // NEAR Intents balance: no token registration or account needed first.
-      refundTo: args.recipient,
-      refundType: "INTENTS",
+      // Delivered to the recipient's NEAR Intents balance: no token
+      // registration or account needed first. If the swap fails, 1Click
+      // sends the money straight back to the player's own address on the
+      // chain they paid from.
+      refundTo: args.refundTo ?? args.recipient,
+      refundType: args.refundTo ? "ORIGIN_CHAIN" : "INTENTS",
       recipient: args.recipient,
       recipientType: "INTENTS",
       deadline: new Date(Date.now() + DEADLINE_MS).toISOString(),

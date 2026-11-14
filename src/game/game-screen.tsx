@@ -278,7 +278,7 @@ export function GameScreen() {
           onGive={(amount) => act({ action: "topup", amount }, "Coins! I'll spend them wisely.", "spin")}
         />
       )}
-      {panel?.kind === "menu" && <MenuSheet slime={slime} onClose={() => setPanel(null)} onSaved={home.refresh} />}
+      {panel?.kind === "menu" && <MenuSheet slime={slime} guest={home.data.player?.guest ?? false} onClose={() => setPanel(null)} onSaved={home.refresh} />}
     </div>
   );
 }

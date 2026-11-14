@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FastForward, LogOut, ShieldCheck } from "lucide-react";
 import { DecisionItem } from "@/components/log/decision-item";
+import { SignIn } from "@/components/sign-in";
 import { MarketScreen } from "@/components/market/market-screen";
 import { RulesForm } from "@/components/rules/rules-screen";
 import { ThemeToggle } from "@/components/shell/theme-toggle";
@@ -37,7 +38,7 @@ function Town() {
   return data ? <WorldPanels world={data} /> : <Loading label="Asking around town…" />;
 }
 
-export function MenuSheet({ slime, onClose, onSaved }: { slime: SlimeDto; onClose: () => void; onSaved: () => void }) {
+export function MenuSheet({ slime, guest, onClose, onSaved }: { slime: SlimeDto; guest: boolean; onClose: () => void; onSaved: () => void }) {
   const [tab, setTab] = useState<Tab>("Journal");
   const router = useRouter();
   return (
@@ -60,6 +61,13 @@ export function MenuSheet({ slime, onClose, onSaved }: { slime: SlimeDto; onClos
       {tab === "Town" && <Town />}
       {tab === "More" && (
         <div className="flex flex-col gap-3">
+          {guest && (
+            <div className="flex flex-col gap-2 rounded-2xl border border-accent/40 bg-accent/10 p-3">
+              <p className="font-semibold">Keep {slime.name} forever</p>
+              <p className="text-sm text-ink-soft">You&apos;re playing as a guest. Sign in to keep your slime and coins on any device.</p>
+              <SignIn devLogin={false} guest={false} />
+            </div>
+          )}
           <div className="flex items-center justify-between rounded-2xl bg-bg-soft p-3">
             <span>Light or dark</span>
             <ThemeToggle />
