@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { BuiltOnNear } from "@/components/brand/near-logo";
+import { BuiltOnNear, NearMark } from "@/components/brand/near-logo";
 import { ProfileActions } from "@/components/social/profile-actions";
 import { SlimeDot } from "@/components/social/slime-dot";
+import { eq } from "drizzle-orm";
 import { db } from "@/db/client";
+import { players } from "@/db/schema";
 import { GIFT_MAX } from "@/economy/config";
 import { formatBits, MOOD } from "@/lib/format";
 import { profileDto } from "@/lib/views";
@@ -19,7 +21,10 @@ async function load(id: string) {
   if (!/^s[0-9a-z]{1,10}$/.test(id)) return null;
   const world = await loadWorld(db());
   const slime = world.slimes[id];
-  return slime ? profileDto(world, slime, await currentPlayerId()) : null;
+  if (!slime) return null;
+  // The keeper's own NEAR wallet, if they linked one (public, like any account name).
+  const [owner] = slime.ownerId ? await db().select({ wallet: players.walletAccountId }).from(players).where(eq(players.id, slime.ownerId)) : [];
+  return { ...profileDto(world, slime, await currentPlayerId()), wallet: owner?.wallet ?? null };
 }
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
@@ -56,6 +61,11 @@ export default async function Page({ params }: Params) {
           <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-sm ${mood.tone}`}>
             {mood.emoji} {mood.label}
           </span>
+          {p.wallet && (
+            <span className="ml-2 mt-1 inline-flex items-center gap-1 rounded-full bg-bg-soft px-2 py-0.5 text-sm">
+              <NearMark className="h-3.5 w-3.5" /> {p.wallet}
+            </span>
+          )}
         </div>
       </div>
       <section className="grid grid-cols-2 gap-2 sm:grid-cols-4" aria-label="Stats">

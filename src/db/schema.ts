@@ -14,6 +14,8 @@ export const players = pgTable("players", {
   nearFcKeyEnc: text("near_fc_key_enc"),
   /** Starter coins deposited and town key added on chain. */
   chainReady: boolean("chain_ready").notNull().default(false),
+  /** The player's own NEAR wallet, proven with a signed message (NEP-413). */
+  walletAccountId: text("wallet_account_id").unique(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -163,3 +165,10 @@ export const topups = pgTable(
   (t) => [index("topups_player_idx").on(t.playerId, t.id)],
 );
 
+
+/** One-time messages a player signs with their NEAR wallet to prove it is theirs. */
+export const walletChallenges = pgTable("wallet_challenges", {
+  nonce: text("nonce").primaryKey(),
+  playerId: text("player_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});

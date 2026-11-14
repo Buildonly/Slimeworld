@@ -7,6 +7,7 @@ import { FastForward, LogOut, ShieldCheck } from "lucide-react";
 import { DecisionItem } from "@/components/log/decision-item";
 import { BuiltOnNear } from "@/components/brand/near-logo";
 import { SignIn } from "@/components/sign-in";
+import { WalletPanel } from "@/components/wallet/wallet-panel";
 import { MarketScreen } from "@/components/market/market-screen";
 import { RulesForm } from "@/components/rules/rules-screen";
 import { ThemeToggle } from "@/components/shell/theme-toggle";
@@ -17,7 +18,7 @@ import { explorer } from "@/lib/format";
 import { usePoll } from "@/lib/use-poll";
 import { GameSheet } from "./sheet";
 
-const TABS = ["Journal", "Rules", "Market", "Town", "More"] as const;
+const TABS = ["Journal", "Rules", "Wallet", "Market", "Town", "More"] as const;
 type Tab = (typeof TABS)[number];
 
 function Journal({ slime }: { slime: SlimeDto }) {
@@ -58,6 +59,7 @@ export function MenuSheet({ slime, guest, onClose, onSaved }: { slime: SlimeDto;
         </>
       )}
       {tab === "Rules" && <RulesForm slime={slime} onSaved={onSaved} />}
+      {tab === "Wallet" && <WalletPanel names={{ [slime.id]: slime.name }} />}
       {tab === "Market" && <MarketScreen signedIn />}
       {tab === "Town" && <Town />}
       {tab === "More" && (

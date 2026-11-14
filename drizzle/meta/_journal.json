@@ -64,6 +64,13 @@
       "when": 1794647612448,
       "tag": "0008_graceful_starfox",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1794650336282,
+      "tag": "0009_crazy_gorilla_man",
+      "breakpoints": true
     }
   ]
 }
