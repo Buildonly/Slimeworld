@@ -37,6 +37,13 @@ describe("live NEAR costs", () => {
   it("reads exact shortfalls from failed outcomes", () => {
     expect(shortfallFrom({ ActionError: { kind: { LackBalanceForState: { account_id: "town.g.near", amount: "123" } } } })).toEqual({ accountId: "town.g.near", amount: 123n });
     expect(shortfallFrom(new Error("something else"))).toBeNull();
+    // A copy of the error class from the other bundle still counts.
+    class LackBalanceForStateActionError extends Error {
+      constructor(readonly accountId: string, readonly amount: bigint) {
+        super("lacks balance");
+      }
+    }
+    expect(shortfallFrom(new LackBalanceForStateActionError("goo.g.near", 7n))).toEqual({ accountId: "goo.g.near", amount: 7n });
   });
   it("covers only what the game's own ledgers pay out", () => {
     const op = (from: string, amount: string) => ({ from, to: "s", amount, kind: "Gift" as const, memo: null });

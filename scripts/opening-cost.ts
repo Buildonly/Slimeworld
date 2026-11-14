@@ -13,7 +13,7 @@ import { ITEMS, STARTER_COINS, STARTING_SHOPS, YOCTO_PER_BIT } from "../src/econ
 import { accessKeyBytes, gasCost, receiptGas, storageCost, type ChainPrices } from "../src/near/costs";
 import { PLAYER_KEY_METHODS } from "../src/near/town-chain";
 
-export const CONTRACT_WASMS = ["slime_nft", "items_mt", "town"] as const;
+export const CONTRACT_WASMS = ["slime_nft", "items_mt", "town", "goo"] as const;
 
 export type Line = { what: string; storage: bigint; gasAtMost: bigint };
 export type Cost = { opening: Line[]; perPlayer: Line[]; notes: string[] };

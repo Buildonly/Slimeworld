@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["slime_nft", "items_mt", "town", "integration-tests"]
+members = ["slime_nft", "items_mt", "town", "goo", "integration-tests"]
 
 [workspace.package]
 edition = "2021"

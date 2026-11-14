@@ -105,6 +105,9 @@ export async function topUpTo(funder: Account, p: ChainPrices, accountId: string
   return send;
 }
 
+/** How many times to top up and retry before giving up. */
+const TOP_UP_TRIES = 3;
+
 /**
  * Pull "account X needs N more yocto" out of a NEAR error or a failed
  * outcome: storage (LackBalanceForState) or a signer short of gas money
@@ -113,6 +116,12 @@ export async function topUpTo(funder: Account, p: ChainPrices, accountId: string
 export function shortfallFrom(err: unknown): { accountId: string; amount: bigint } | null {
   if (err instanceof LackBalanceForStateActionError) return { accountId: err.accountId, amount: err.amount };
   if (err instanceof NotEnoughBalanceError) return { accountId: err.signerId, amount: err.cost - err.balance };
+  // near-api-js bundles its error classes twice (main entry and rpc-errors), so
+  // instanceof can miss; recognise them by name and fields too.
+  const e = err as { name?: string; constructor?: { name?: string }; accountId?: unknown; amount?: unknown; signerId?: unknown; cost?: unknown; balance?: unknown } | null;
+  const name = e?.constructor?.name ?? e?.name ?? "";
+  if (name === "LackBalanceForStateActionError" && typeof e?.accountId === "string" && typeof e.amount === "bigint") return { accountId: e.accountId, amount: e.amount };
+  if (name === "NotEnoughBalanceError" && typeof e?.signerId === "string" && typeof e.cost === "bigint" && typeof e.balance === "bigint") return { accountId: e.signerId, amount: e.cost - e.balance };
   let text: string;
   try {
     text = JSON.stringify(err, (_k, v: unknown) => (typeof v === "bigint" ? v.toString() : v)) ?? "";
@@ -135,16 +144,19 @@ function failedOutcome(result: unknown): unknown {
  */
 export async function withTopUp<T>(funder: Account, owned: (accountId: string) => boolean, run: () => Promise<T>): Promise<T> {
   const fixable = (s: { accountId: string; amount: bigint } | null): s is { accountId: string; amount: bigint } => Boolean(s && s.amount > 0n && owned(s.accountId));
-  let short: { accountId: string; amount: bigint } | null;
-  try {
-    const result = await run();
-    const failure = failedOutcome(result);
-    short = failure ? shortfallFrom(failure) : null;
-    if (!fixable(short)) return result;
-  } catch (err) {
-    short = shortfallFrom(err);
-    if (!fixable(short)) throw err;
+  // When the short account also signs the call, each try spends a little gas
+  // from that same balance, so it can come up short again by that much.
+  for (let attempt = 0; ; attempt++) {
+    let short: { accountId: string; amount: bigint } | null;
+    try {
+      const result = await run();
+      const failure = failedOutcome(result);
+      short = failure ? shortfallFrom(failure) : null;
+      if (!fixable(short) || attempt >= TOP_UP_TRIES) return result;
+    } catch (err) {
+      short = shortfallFrom(err);
+      if (!fixable(short) || attempt >= TOP_UP_TRIES) throw err;
+    }
+    await funder.transfer({ receiverId: short.accountId, amount: short.amount });
   }
-  await funder.transfer({ receiverId: short.accountId, amount: short.amount });
-  return run();
 }

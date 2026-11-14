@@ -88,7 +88,26 @@ export const ITEMS: readonly ItemDef[] = [
   { id: "wood", title: "Wood", description: "Shops use it to make things.", category: "Material", basePrice: coins(3) },
 ];
 
-export const ITEM_BY_ID: ReadonlyMap<string, ItemDef> = new Map(ITEMS.map((i) => [i.id, i]));
+/** Rare items no shop sells: keepers get them only by burning $GOO. */
+export const GOO_ITEMS: readonly ItemDef[] = [
+  { id: "crown", title: "Goo crown", description: "A rare crown made of pure goo. Big charm.", category: "Hat", basePrice: coins(200), trains: "charm", joy: 40 },
+];
+
+export const ITEM_BY_ID: ReadonlyMap<string, ItemDef> = new Map([...ITEMS, ...GOO_ITEMS].map((i) => [i.id, i]));
+
+/**
+ * $GOO, the game token (testnet, no cash value). These are its starting
+ * rules, in whole GOO; the contract itself enforces them, within hard limits.
+ */
+export const GOO = {
+  supply: 1_000_000_000n,
+  careReward: 10n,
+  winReward: 25n,
+  rescueBurn: 5n,
+  /** item id -> GOO burned to get it */
+  prices: { crown: 100n } as Record<string, bigint>,
+};
+export const GOO_DECIMALS = 18;
 
 /** Skill points a training item or a successful job adds (skills run 1 to 100). */
 export const TRAINING_GAIN = 4;
