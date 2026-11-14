@@ -2,15 +2,15 @@
  * Try to cheat the town contract for real, on chain, and keep each refusal.
  * A test player, a second player and a slime are made fresh each run. Every
  * attempt is a real signed transaction; the contract's own error is stored
- * with the transaction hash for the public proof page.
+ * with the transaction hash in src/proofs/cheat-proofs.json, which ships
+ * with the game and feeds the public Fair play page. Commit it after a run.
  *   pnpm proofs
  */
 import "dotenv/config";
 import { randomBytes } from "node:crypto";
-import { sql } from "drizzle-orm";
+import { writeFileSync } from "node:fs";
 import { Account, actions, JsonRpcProvider, KeyPair, teraToGas, type KeyPairString } from "near-api-js";
-import { db } from "../src/db/client";
-import { cheatProofs } from "../src/db/schema";
+import { PROOFS_FILE, type CheatProof } from "../src/proofs/cheat-proofs";
 import { ITEMS, STARTER_COINS, STARTING_SHOPS, YOCTO_PER_BIT } from "../src/economy/config";
 import { contractIds } from "../src/near/contracts";
 import { accessKeyBytes, chainPrices, storageCost, withTopUp } from "../src/near/costs";
@@ -68,18 +68,17 @@ async function main() {
     { attempt: "stranger-withdraw", title: "Take coins from someone's slime", story: "A stranger tries to move a slime's coins to its owner's purse.", signer: stranger, method: "owner_withdraw", args: { slime_id: slime.accountId, amount: yocto(1n) } },
   ];
 
+  const proofs: CheatProof[] = [];
   for (const a of attempts) {
     const res = await withTopUp(game, owned, () => a.signer.signAndSendTransaction({ receiverId: town, actions: [actions.functionCall(a.method, a.args, GAS, 0n)], throwOnFailure: false }));
     const failure = (res.status as { Failure?: unknown }).Failure;
     if (!failure) throw new Error(`The contract did NOT refuse "${a.title}" (${res.transaction.hash}). Investigate before publishing.`);
     const error = refusal(failure);
-    await db()
-      .insert(cheatProofs)
-      .values({ attempt: a.attempt, title: a.title, story: a.story, error, txHash: res.transaction.hash, network })
-      .onConflictDoUpdate({ target: cheatProofs.attempt, set: { title: a.title, story: a.story, error, txHash: res.transaction.hash, network, createdAt: sql`now()` } });
+    proofs.push({ attempt: a.attempt, title: a.title, story: a.story, error, txHash: res.transaction.hash, network, at: new Date().toISOString() });
     console.log(`BLOCKED  ${a.title}: ${error}`);
   }
-  process.exit(0);
+  writeFileSync(PROOFS_FILE, JSON.stringify(proofs, null, 2) + "\n");
+  console.log(`Saved ${proofs.length} proofs to ${PROOFS_FILE}. Commit it to publish them.`);
 }
 
 main().catch((err: unknown) => {

@@ -1,0 +1,1 @@
+DROP TABLE "cheat_proofs" CASCADE;

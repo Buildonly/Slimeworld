@@ -163,16 +163,3 @@ export const topups = pgTable(
   (t) => [index("topups_player_idx").on(t.playerId, t.id)],
 );
 
-/** Real attempts to cheat the town contract on chain, and the rule that refused each one. */
-export const cheatProofs = pgTable("cheat_proofs", {
-  id: bigserial("id", { mode: "number" }).primaryKey(),
-  /** Short id of the attempt, e.g. "banned-item"; the newest run replaces older ones. */
-  attempt: text("attempt").notNull().unique(),
-  title: text("title").notNull(),
-  story: text("story").notNull(),
-  /** The contract's own refusal, as the chain reported it. */
-  error: text("error").notNull(),
-  txHash: text("tx_hash").notNull(),
-  network: text("network").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { count, desc, eq } from "drizzle-orm";
+import { count, eq } from "drizzle-orm";
 import { db } from "@/db/client";
-import { chainOps, cheatProofs, slimeAccounts } from "@/db/schema";
+import { chainOps, slimeAccounts } from "@/db/schema";
+import { cheatProofs } from "@/proofs/cheat-proofs";
 import { explorer, formatBits } from "@/lib/format";
 import { YOCTO_PER_BIT } from "@/economy/config";
 import { serverEnv } from "@/lib/env";
@@ -33,8 +34,8 @@ function Stat({ value, label }: { value: string; label: string }) {
 export default async function Page() {
   const game = serverEnv().NEAR_GAME_ACCOUNT;
   const town = game ? contractIds(game).town : null;
-  const [proofs, [slimes], [settled], [refused], treasury] = await Promise.all([
-    db().select().from(cheatProofs).orderBy(desc(cheatProofs.createdAt)),
+  const proofs = cheatProofs();
+  const [[slimes], [settled], [refused], treasury] = await Promise.all([
     db().select({ n: count() }).from(slimeAccounts).where(eq(slimeAccounts.status, "ready")),
     db().select({ n: count() }).from(chainOps).where(eq(chainOps.status, "done")),
     db().select({ n: count() }).from(chainOps).where(eq(chainOps.status, "rejected")),
