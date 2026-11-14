@@ -11,6 +11,8 @@ export class GameBus {
   mover: Mover;
   yaw = 0;
   zoom = 1;
+  /** Camera tilt: 0 = low behind the slime, 1 = looking straight down from above. */
+  pitch = 0.3;
   nearby: string | null = null;
   private listeners = new Set<(spot: Spot | null) => void>();
 
@@ -29,10 +31,11 @@ export class GameBus {
     this.target = p;
   }
 
-  /** Turn the camera around the slime (drag) and zoom (pinch or wheel). */
-  look(dYaw: number, dZoom = 0) {
+  /** Turn the camera around the slime, tilt it up or down (drag), and zoom (pinch or wheel). */
+  look(dYaw: number, dZoom = 0, dPitch = 0) {
     this.yaw += dYaw;
-    this.zoom = Math.min(1.8, Math.max(0.6, this.zoom + dZoom));
+    this.zoom = Math.min(1.8, Math.max(0.5, this.zoom + dZoom));
+    this.pitch = Math.min(1, Math.max(0, this.pitch + dPitch));
   }
 
   onNearby(fn: (spot: Spot | null) => void): () => void {

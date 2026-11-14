@@ -1,50 +1,22 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useIdentityToken, usePrivy } from "@privy-io/react-auth";
-import { privyEnabled } from "./providers";
+import type { LoginStatus } from "./auth/privy-login";
 
-type Status = { kind: "idle" } | { kind: "busy"; text: string } | { kind: "error"; text: string };
+const privyAppId = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
+/** Privy loads only when this sheet opens, never on the first page. */
+const PrivyLogin = dynamic(() => import("./auth/privy-login"), {
+  ssr: false,
+  loading: () => <div className="h-[60px] w-full animate-pulse rounded-2xl bg-accent/40" />,
+});
+
+type Status = LoginStatus;
 
 async function postJson(url: string, body: unknown): Promise<{ ok: boolean; error?: string }> {
   const res = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
   return (await res.json().catch(() => ({ ok: false, error: "Something went wrong." }))) as { ok: boolean; error?: string };
-}
-
-/** Email or Google sign in through Privy, then swap for our own session. */
-function PrivySignIn({ onStatus }: { onStatus: (s: Status) => void }) {
-  const router = useRouter();
-  const { ready, authenticated, login, getAccessToken } = usePrivy();
-  const { identityToken } = useIdentityToken();
-  const sent = useRef(false);
-
-  useEffect(() => {
-    if (!ready || !authenticated || sent.current) return;
-    sent.current = true;
-    void (async () => {
-      onStatus({ kind: "busy", text: "Getting your egg ready…" });
-      const accessToken = await getAccessToken();
-      const res = await postJson("/api/session", { accessToken, identityToken });
-      if (!res.ok) {
-        sent.current = false;
-        onStatus({ kind: "error", text: res.error ?? "Sign in failed." });
-        return;
-      }
-      router.refresh();
-    })();
-  }, [ready, authenticated, getAccessToken, identityToken, onStatus, router]);
-
-  return (
-    <button
-      type="button"
-      disabled={!ready}
-      onClick={() => login()}
-      className="w-full rounded-2xl bg-accent px-5 py-4 text-lg font-semibold text-accent-ink shadow-[0_4px_0_rgba(0,0,0,0.15)] transition active:translate-y-0.5 active:shadow-none disabled:opacity-60"
-    >
-      {ready ? "Play with email or Google" : "Loading…"}
-    </button>
-  );
 }
 
 /** Test sign in for local play: shown only when the server allows it. */
@@ -101,7 +73,7 @@ export function SignIn({ devLogin, guest = true }: { devLogin: boolean; guest?: 
   const [status, setStatus] = useState<Status>({ kind: "idle" });
   return (
     <div className="flex w-full flex-col items-center gap-3">
-      {privyEnabled && <PrivySignIn onStatus={setStatus} />}
+      {privyAppId && <PrivyLogin appId={privyAppId} onStatus={setStatus} />}
       {devLogin && <DevSignIn onStatus={setStatus} />}
       {guest && <GuestSignIn onStatus={setStatus} />}
       <p role="status" aria-live="polite" className={status.kind === "error" ? "text-danger" : "text-ink-soft"}>

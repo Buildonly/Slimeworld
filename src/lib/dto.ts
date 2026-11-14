@@ -96,7 +96,7 @@ export type EventDto = { tick: number; kind: string; text: string };
 export type JobDto = { kind: string; wage: BitsStr; shop: string | null };
 export type ContestDto = { id: string; kind: "race" | "puzzle"; entry: BitsStr; entrants: number; startsIn: number; mine: boolean };
 
-export type TownDto = { clock: ClockDto; shops: ShopDto[]; slimes: TownSlimeDto[]; events: EventDto[]; jobs: JobDto[]; contests: ContestDto[] };
+export type TownDto = { clock: ClockDto; population: number; shops: ShopDto[]; slimes: TownSlimeDto[]; events: EventDto[]; jobs: JobDto[]; contests: ContestDto[] };
 
 export type ItemDto = {
   id: string;

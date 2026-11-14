@@ -118,8 +118,11 @@ export function eventsDto(world: World, n = 12): EventDto[] {
   return world.events.slice(-n).reverse().map((e) => ({ tick: e.tick, kind: e.kind, text: e.text }));
 }
 
-/** Up to `max` slimes for the town scene, the viewer's own first. */
-export function townDto(world: World, viewerId: string | null, max = 60): TownDto {
+/** Slimes shown walking about town at once: enough to feel alive, few enough to follow. */
+export const TOWN_VIEW_SLIMES = 16;
+
+/** Up to `max` slimes for the town scene: the viewer's own first, then other players', then town slimes. */
+export function townDto(world: World, viewerId: string | null, max = TOWN_VIEW_SLIMES): TownDto {
   const all = Object.values(world.slimes);
   const mine = all.filter((s) => viewerId && s.ownerId === viewerId);
   // Other players' slimes first, so friends always show up in town.
@@ -129,6 +132,7 @@ export function townDto(world: World, viewerId: string | null, max = 60): TownDt
     .slice(0, Math.max(0, max - mine.length));
   return {
     clock: clock(world),
+    population: all.length,
     shops: Object.values(world.shops).map(shopDto),
     slimes: [...mine, ...others].map((s) => ({ id: s.id, name: s.name, colour: s.colour, state: moneyState(s), size: s.size, mine: s.ownerId === viewerId && viewerId !== null, working: Boolean(s.job), player: isPlayerSlime(world, s) })),
     events: eventsDto(world),

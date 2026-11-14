@@ -28,7 +28,7 @@ export async function POST(req: Request) {
   if (!slime) return fail(404, "Slime not found.");
   const env = serverEnv();
   const key = env.NEAR_AI_API_KEY === "proxy-injected" ? undefined : env.NEAR_AI_API_KEY;
-  const reply = await talk(world, slime, body.text, { model: env.NEAR_AI_MODEL, apiKey: key });
+  const reply = await talk(world, slime, body.text, { model: env.NEAR_AI_MODEL, apiKey: key, ai: Boolean(env.NEAR_AI_API_KEY && env.NEAR_AI_URL && env.NEAR_AI_MODEL) });
 
   // Pay for the thought and log it, on the locked town.
   await withWorld(db(), async (w) => {

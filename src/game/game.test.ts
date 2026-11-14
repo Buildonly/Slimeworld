@@ -62,7 +62,7 @@ describe("the guide", () => {
     rules: { dailyLimit: "12000", savingsTarget: "2000", allowed: ["Food"], allowedJobs: ["delivery", "race"] }, spentToday: "0", chain: null,
   };
   const shop = (id: string, closed = false) => ({ id, name: id === "bakery" ? "Bun's Bakery" : "Bop's Toys", keeper: "K", personality: "fair", status: (closed ? "closed" : "open") as "open" | "closed", wallet: "0", prices: id === "bakery" ? [{ item: "berries", title: "Berries", price: "800", base: "800", reason: "", stock: 5 }] : [], buys: [], margin: "normal", hoard: null, investors: 0 });
-  const town: TownDto = { clock: { tick: 1, day: 1, hour: 1, season: "calm", seasonTitle: "Calm" }, shops: [shop("bakery"), shop("toys")], slimes: [], events: [], jobs: [{ kind: "delivery", wage: "1400", shop: null }], contests: [] };
+  const town: TownDto = { clock: { tick: 1, day: 1, hour: 1, season: "calm", seasonTitle: "Calm" }, population: 0, shops: [shop("bakery"), shop("toys")], slimes: [], events: [], jobs: [{ kind: "delivery", wage: "1400", shop: null }], contests: [] };
 
   it("sends a hungry slime to the cheapest open food stall", () => {
     expect(guide({ ...slime, energy: 20 }, town, spots)).toMatchObject({ spotId: "bakery" });

@@ -5,7 +5,7 @@
 import type { SlimeDto, TownDto } from "@/lib/dto";
 import type { Spot } from "./layout";
 
-export type Goal = { text: string; spotId: string | null; button?: "feed" | "pat" };
+export type Goal = { text: string; spotId: string | null; button?: "feed" | "pat" | "talk" };
 
 const FOOD = ["berries", "jelly", "ice", "cake"];
 

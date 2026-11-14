@@ -36,7 +36,11 @@ function Player({ bus, me, spots, solids }: { bus: GameBus; me: Me; spots: Spot[
     }
     // Follow camera: behind and above, at the player's chosen angle and zoom.
     // If a stall or house is in the way, come in closer instead of looking through it.
-    let dist = 7.5 * bus.zoom;
+    // Tilt runs from a low view behind the slime (~14°) to almost straight down (~72°).
+    const tilt = 0.25 + bus.pitch * 1.0;
+    const reach = 8.8 * bus.zoom;
+    let dist = reach * Math.cos(tilt);
+    const full = dist;
     const bx = -Math.sin(bus.yaw);
     const bz = -Math.cos(bus.yaw);
     for (const s of solids) {
@@ -47,13 +51,18 @@ function Player({ bus, me, spots, solids }: { bus: GameBus; me: Me; spots: Spot[
       if (off < s.r + 0.6) dist = Math.max(2.6, t - s.r - 0.4);
     }
     // When it has to come close, the camera rises and looks down over the obstacle.
-    const height = 4.6 * bus.zoom + 0.6 + Math.max(0, 7.5 * bus.zoom - dist) * 0.3;
+    const height = reach * Math.sin(tilt) + 0.6 + Math.max(0, full - dist) * 0.3;
     const want = new THREE.Vector3(pos.x + bx * dist, height, pos.z + bz * dist);
     camera.position.lerp(want, 1 - Math.exp(-dt * 5));
     camera.lookAt(pos.x, 1.1, pos.z);
   });
   return (
     <group ref={group}>
+      {/* "You": a bright ring under your own slime, so it never gets lost in the crowd. */}
+      <mesh rotation-x={-Math.PI / 2} position-y={0.03}>
+        <ringGeometry args={[0.62, 0.8, 40]} />
+        <meshBasicMaterial color="#3ddc84" transparent opacity={0.9} />
+      </mesh>
       <group scale={0.62}>
         <SlimeModel state={me.state} colour={me.colour} size={me.size} reaction={me.reaction} movingRef={moving} />
       </group>

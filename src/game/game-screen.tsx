@@ -11,7 +11,7 @@ import type { HomeDto, TownDto } from "@/lib/dto";
 import { formatBits } from "@/lib/format";
 import { post, usePoll } from "@/lib/use-poll";
 import { GameBus } from "./bus";
-import { guide } from "./guide";
+import { guide, type Goal } from "./guide";
 import { Joystick } from "./hud/joystick";
 import { LoadingScreen } from "./hud/loading-screen";
 import { Minimap } from "./hud/minimap";
@@ -21,6 +21,9 @@ import { CoinsSheet } from "./panels/coins-sheet";
 import { JobsSheet } from "./panels/jobs-sheet";
 import { MenuSheet } from "./panels/menu-sheet";
 import { SquareSheet } from "./panels/square-sheet";
+import { FIRST_DAY, firstDayStep, type StepId } from "./first-day";
+import { Welcome } from "./hud/welcome";
+import { useFirstDay } from "./use-first-day";
 import { RaceSheet } from "./panels/race-sheet";
 import { ShopSheet } from "./panels/shop-sheet";
 import { useControls } from "./use-controls";
@@ -72,6 +75,8 @@ export function GameScreen() {
   const shopIds = useMemo(() => town.data?.shops.map((s) => s.id) ?? [], [town.data?.shops]);
   const layout = useMemo(() => townLayout(shopIds), [shopIds]);
   const slime = home.data?.slimes[0] ?? null;
+  const firstDay = useFirstDay(slime?.id ?? null);
+  const markStep = firstDay.mark;
 
   useEffect(() => bus.onNearby(setNearby), [bus]);
   useEffect(() => {
@@ -112,6 +117,8 @@ export function GameScreen() {
       const r = await post("/api/actions", { slimeId: slime.id, ...body });
       setBusy(false);
       if (r.ok) {
+        const step = ({ feed: "feed", job: "job", race: "race" } as Record<string, StepId>)[String(body.action)];
+        if (step) markStep(step);
         say(line, kind);
         toast(r.message ?? "Done!");
         await Promise.all([home.refresh(), town.refresh()]);
@@ -121,7 +128,7 @@ export function GameScreen() {
       }
       return r.ok;
     },
-    [slime, say, toast, home, town],
+    [slime, say, toast, home, town, markStep],
   );
 
   const use = useCallback(() => {
@@ -129,13 +136,24 @@ export function GameScreen() {
     if (nearby.kind === "shop") setPanel({ kind: "shop", id: nearby.id });
     else if (nearby.kind === "jobs") setPanel({ kind: "jobs" });
     else if (nearby.kind === "races") setPanel({ kind: "races" });
-    else setPanel({ kind: "square" });
-  }, [nearby]);
+    else {
+      setPanel({ kind: "square" });
+      markStep("square");
+    }
+  }, [nearby, markStep]);
 
-  useControls(bus, stage, use, panel === null && !talking);
+  useControls(bus, stage, use, panel === null && !talking, Boolean(home.data && town.data && slime));
 
   const ready = Boolean(home.data && town.data && slime);
-  const goal = slime && town.data ? guide(slime, town.data, layout.spots) : null;
+  const needs = slime && town.data ? guide(slime, town.data, layout.spots) : null;
+  const day = slime && slime.job ? firstDayStep(new Set([...firstDay.done, "job" as const])) : firstDayStep(firstDay.done);
+  const urgent = needs && (slime?.state === "asleep" || (slime?.energy ?? 100) < 40);
+  const goal: Goal | null =
+    urgent || !slime
+      ? needs
+      : day
+        ? { text: day.step.text(slime.name), spotId: day.step.spotId, button: day.step.button }
+        : (needs ?? { text: `${slime.name} is doing well! Race, trade, or invite a friend from the town square.`, spotId: "fountain" });
   const goalSpot = goal?.spotId ? (layout.spots.find((s) => s.id === goal.spotId) ?? null) : null;
   const closed = useMemo(() => new Set(town.data?.shops.filter((s) => s.status === "closed").map((s) => s.id) ?? []), [town.data?.shops]);
 
@@ -177,7 +195,10 @@ export function GameScreen() {
               <span className="hidden rounded-full bg-card/85 px-3 py-2 text-sm shadow-lg backdrop-blur sm:inline">
                 {night ? "🌙" : SEASON_EMOJI[t.clock.season] ?? "🌤️"} Day {t.clock.day} · {String(t.clock.hour).padStart(2, "0")}:00
               </span>
-              <button type="button" aria-label="Ranks and friends" onClick={() => setPanel({ kind: "square" })} className="pointer-events-auto grid h-10 w-10 place-items-center rounded-full bg-card/85 shadow-lg backdrop-blur">
+              <button type="button" aria-label="Ranks and friends" onClick={() => {
+                  setPanel({ kind: "square" });
+                  markStep("square");
+                }} className="pointer-events-auto grid h-10 w-10 place-items-center rounded-full bg-card/85 shadow-lg backdrop-blur">
                 <Trophy size={20} />
               </button>
               <button type="button" aria-label="Menu" onClick={() => setPanel({ kind: "menu" })} className="pointer-events-auto grid h-10 w-10 place-items-center rounded-full bg-card/85 shadow-lg backdrop-blur">
@@ -189,7 +210,14 @@ export function GameScreen() {
         </div>
 
         {goal && (
-          <p className="mx-auto mt-2 max-w-sm rounded-full bg-black/45 px-4 py-1.5 text-center text-sm font-medium text-white backdrop-blur-sm">✨ {goal.text}</p>
+          <div className="mx-auto mt-2 max-w-sm rounded-2xl bg-black/55 px-4 py-2 text-center text-white backdrop-blur-sm">
+            {day && !urgent && (
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#ffe08a]">
+                Your first day · step {day.index + 1} of {FIRST_DAY.length}
+              </p>
+            )}
+            <p className="text-sm font-medium">⭐ {goal.text}</p>
+          </div>
         )}
 
         <div className="mt-auto flex flex-col items-center gap-3">
@@ -206,7 +234,14 @@ export function GameScreen() {
           )}
           {talking && (
             <div className="pointer-events-auto w-full max-w-md">
-              <TalkPanel slimeId={slime.id} name={slime.name} onReply={(line) => say(line)} />
+              <TalkPanel
+                slimeId={slime.id}
+                name={slime.name}
+                onReply={(line) => {
+                  say(line);
+                  markStep("talk");
+                }}
+              />
             </div>
           )}
           <div className="flex w-full items-end justify-between gap-3">
@@ -224,7 +259,7 @@ export function GameScreen() {
               <RoundButton label="Pat" pulse={goal?.button === "pat"} disabled={busy} onClick={() => act({ action: "play" }, "Hehe, that tickles!", "spin")}>
                 <Hand size={22} />
               </RoundButton>
-              <RoundButton label="Talk" big active={talking} onClick={() => setTalking((v) => !v)}>
+              <RoundButton label="Talk" big active={talking} pulse={goal?.button === "talk" && !talking} onClick={() => setTalking((v) => !v)}>
                 <Mic size={26} />
               </RoundButton>
             </div>
@@ -283,6 +318,7 @@ export function GameScreen() {
           onGive={(amount) => act({ action: "topup", amount }, "Coins! I'll spend them wisely.", "spin")}
         />
       )}
+      {ready && <Welcome name={slime.name} />}
       {panel?.kind === "square" && <SquareSheet slimes={t.slimes} events={t.events} giftMax={Number(GIFT_MAX / 100n)} onClose={() => setPanel(null)} onChanged={() => void Promise.all([home.refresh(), town.refresh()])} />}
       {panel?.kind === "menu" && <MenuSheet slime={slime} guest={home.data.player?.guest ?? false} onClose={() => setPanel(null)} onSaved={home.refresh} />}
     </div>

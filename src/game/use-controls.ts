@@ -10,9 +10,10 @@ const KEYS: Record<string, [number, number]> = {
 
 /**
  * Keyboard: WASD or arrows to hop, E or Enter to use what's nearby.
- * Drag anywhere on the world to look around; wheel to zoom.
+ * Drag anywhere on the world to look around: sideways turns, up and down
+ * tilts. Pinch with two fingers, or use the wheel, to zoom.
  */
-export function useControls(bus: GameBus, el: React.RefObject<HTMLElement | null>, onUse: () => void, enabled: boolean) {
+export function useControls(bus: GameBus, el: React.RefObject<HTMLElement | null>, onUse: () => void, enabled: boolean, mounted: boolean) {
   useEffect(() => {
     if (!enabled) return;
     const held = new Set<string>();
@@ -58,28 +59,48 @@ export function useControls(bus: GameBus, el: React.RefObject<HTMLElement | null
   useEffect(() => {
     const node = el.current;
     if (!node) return;
-    let last: number | null = null;
+    // Every finger (or the mouse) on the world, by pointer id.
+    const points = new Map<number, { x: number; y: number }>();
+    let pinch: number | null = null;
+    const spread = () => {
+      const [a, b] = [...points.values()];
+      return a && b ? Math.hypot(a.x - b.x, a.y - b.y) : null;
+    };
     const pd = (e: PointerEvent) => {
-      last = e.clientX;
+      points.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      pinch = points.size === 2 ? spread() : null;
     };
     const pm = (e: PointerEvent) => {
-      if (last === null || (e.pointerType === "mouse" && e.buttons === 0)) return;
-      bus.look(-(e.clientX - last) * 0.006);
-      last = e.clientX;
+      const p = points.get(e.pointerId);
+      if (!p || (e.pointerType === "mouse" && e.buttons === 0)) return;
+      const dx = e.clientX - p.x;
+      const dy = e.clientY - p.y;
+      points.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (points.size >= 2) {
+        const now = spread();
+        if (pinch !== null && now !== null) bus.look(0, (pinch - now) * 0.004);
+        pinch = now;
+      } else {
+        bus.look(-dx * 0.006, 0, dy * 0.004);
+      }
     };
-    const pu = () => {
-      last = null;
+    const pu = (e: PointerEvent) => {
+      points.delete(e.pointerId);
+      pinch = points.size === 2 ? spread() : null;
     };
     const wheel = (e: WheelEvent) => bus.look(0, e.deltaY * 0.001);
     node.addEventListener("pointerdown", pd);
     window.addEventListener("pointermove", pm);
     window.addEventListener("pointerup", pu);
+    window.addEventListener("pointercancel", pu);
     node.addEventListener("wheel", wheel, { passive: true });
     return () => {
       node.removeEventListener("pointerdown", pd);
       window.removeEventListener("pointermove", pm);
       window.removeEventListener("pointerup", pu);
+      window.removeEventListener("pointercancel", pu);
       node.removeEventListener("wheel", wheel);
     };
-  }, [bus, el]);
+    // `mounted`: the world element appears only after loading, so attach then.
+  }, [bus, el, mounted]);
 }
