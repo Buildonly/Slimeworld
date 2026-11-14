@@ -90,6 +90,11 @@ export type Job = {
   postedTick: number;
 };
 
+/** One thing a player offers other players: an item from their slime, or shares in a shop. */
+export type Listing =
+  | { id: string; kind: "item"; sellerId: string; slimeId: string; itemId: string; price: Bits; tick: number }
+  | { id: string; kind: "shares"; sellerId: string; shopId: string; shares: Bits; price: Bits; tick: number };
+
 export type Contest = { id: string; kind: "race" | "puzzle"; entry: Bits; entrants: string[]; pot: Bits; settlesAt: number };
 
 export type CareStyle = "devoted" | "casual" | "absent" | "real";
@@ -107,7 +112,8 @@ export type GameEventKind =
   | "hoard"
   | "cheered"
   | "gift"
-  | "invited";
+  | "invited"
+  | "trade";
 
 export type GameEvent = { tick: number; kind: GameEventKind; text: string; shopId?: string; slimeId?: string };
 
@@ -159,6 +165,8 @@ export type World = {
   nextId: number;
   /** Money moves of the current tick (cleared each tick). */
   journal: import("./journal").Move[];
+  /** Things players have put up for sale to each other. */
+  listings: Listing[];
 };
 
 /** What one tick produced, for the log and the database. */

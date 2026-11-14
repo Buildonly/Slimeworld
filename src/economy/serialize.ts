@@ -18,6 +18,7 @@ export function fromJson<T>(text: string): T {
 export const worldToJson = (w: World) => toJson(w);
 export function worldFromJson(text: string): World {
   const world = fromJson<World>(text);
+  world.listings ??= [];
   // Worlds saved before these fields existed start them at zero.
   for (const s of Object.values(world.slimes)) {
     s.wins ??= 0;

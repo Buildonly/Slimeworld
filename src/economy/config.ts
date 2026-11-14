@@ -237,6 +237,10 @@ export const GIFTS_PER_DAY = 5;
 export const INVITE_GIFT = coins(50);
 /** Invites one player is rewarded for per week. */
 export const INVITES_REWARDED_PER_WEEK = 5;
+/** Things one player can have up for sale at once. */
+export const MARKET_MAX_LISTINGS = 6;
+/** Highest asking price on the player market. */
+export const MARKET_MAX_PRICE = coins(5000);
 /** Most keepers in one clan. */
 export const CLAN_MAX_MEMBERS = 20;
 /** Simulated owners top up a slime that drops below this. */
