@@ -69,6 +69,6 @@ flowchart LR
 ## Testnet and mainnet
 
 - **Live today:** the town runs on NEAR **testnet**. Coins have no cash value, and nothing costs real money.
-- **Mainnet:** needs only a treasury account (`TOPUP_TREASURY_ACCOUNT`) to receive top ups. Until it is set, top ups stay off.
+- **Top ups are on mainnet.** A player pays in a coin from another chain (for example USDC on Base). NEAR Intents swaps it to NEAR and delivers it to the treasury account `scrimapp.near` (`TOPUP_TREASURY_ACCOUNT`). The player gets coins for exactly what arrived. If a swap fails, the money goes back to the player on their own chain.
 
 Setup and keys: [SETUP.md](SETUP.md). Code layout: [ARCHITECTURE.md](ARCHITECTURE.md).
