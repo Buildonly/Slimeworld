@@ -45,7 +45,7 @@ function TopUpTracker({ start, onDone }: { start: TopUp; onDone: () => void }) {
     if (credited) onDone();
   }, [credited, onDone]);
   if (t.status === "REFUNDED" || t.status === "FAILED")
-    return <p className="rounded-2xl bg-danger/10 p-3 text-danger">That swap didn&apos;t go through, so the money was sent back to your NEAR account.</p>;
+    return <p className="rounded-2xl bg-danger/10 p-3 text-danger">That swap didn&apos;t go through. Your money is safe with the town: tell us top up #{t.id} and we&apos;ll send it back.</p>;
   return (
     <div className="flex flex-col gap-3">
       {!credited && (
@@ -141,7 +141,7 @@ export function CoinsSheet({ slimeName, slimeCoins, playerCoins, busy, onGive, o
           }}
         />
       ) : data && !data.live ? (
-        <p className="text-sm text-ink-soft">Top ups open when the town moves to NEAR mainnet.</p>
+        <p className="text-sm text-ink-soft">Top ups are not open yet. Your free coins work everywhere in town.</p>
       ) : (
         <div className="flex flex-col gap-3">
           {data && data.coins.length === 0 ? (
@@ -191,7 +191,7 @@ export function CoinsSheet({ slimeName, slimeCoins, playerCoins, busy, onGive, o
             >
               {starting ? "Getting your address…" : "Get my deposit address"}
             </Button>
-          <p className="text-xs text-ink-soft">Swapped by NEAR Intents. If anything goes wrong, the money goes back to your NEAR account.</p>
+          <p className="text-xs text-ink-soft">Swapped by NEAR Intents. Coins are for spending in town and can&apos;t be cashed out.</p>
         </div>
       )}
     </GameSheet>

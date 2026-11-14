@@ -30,10 +30,13 @@ export function tokenBook(raw: unknown): TokenBook {
   });
   const destination = tokens.find((t) => t.blockchain === WRAPPED_NEAR.blockchain && t.symbol === WRAPPED_NEAR.symbol && t.contractAddress);
   if (!destination) throw new Error("1Click lists no wrapped NEAR");
+  const spread = new Map<string, number>();
+  for (const t of tokens) spread.set(t.symbol, (spread.get(t.symbol) ?? 0) + 1);
   const coins = tokens
     .filter((t) => t.assetId !== destination.assetId)
     .map((t) => ({ id: t.assetId, label: `${t.symbol} · ${t.blockchain.toUpperCase()}`, chain: t.blockchain, symbol: t.symbol, assetId: t.assetId, decimals: t.decimals }))
-    .sort((a, b) => a.symbol.localeCompare(b.symbol) || a.chain.localeCompare(b.chain));
+    // Coins found on the most chains first (the ones most people hold), then by name.
+    .sort((a, b) => (spread.get(b.symbol) ?? 0) - (spread.get(a.symbol) ?? 0) || a.symbol.localeCompare(b.symbol) || a.chain.localeCompare(b.chain));
   return { coins, destination };
 }
 

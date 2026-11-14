@@ -22,6 +22,7 @@ Copy `.env.example` to `.env.local` and fill in:
 | `NEAR_AI_URL`, `NEAR_AI_API_KEY` | NEAR AI Cloud base URL and key |
 | `NEAR_AI_MODEL`, `NEAR_AI_LISTEN_MODEL` | Model ids for slime minds and for speech to text |
 | `ONECLICK_URL`, `ONECLICK_JWT`, `ONECLICK_REFERRAL` | NEAR Intents 1Click base URL, optional partner key and referral |
+| `TOPUP_TREASURY_ACCOUNT` | Mainnet account whose NEAR Intents balance receives top ups (`pnpm treasury:key`); costs nothing to open |
 | `ELEVENLABS_URL`, `ELEVENLABS_API_KEY`, `ELEVENLABS_MODEL` | Voices (model optional: else the cheapest listed) |
 | `NEXT_PUBLIC_PRIVY_APP_ID`, `PRIVY_APP_SECRET`, `PRIVY_AUTH_URL` | Email and Google sign in |
 | `SESSION_SECRET`, `KEYS_SECRET` | 32 random bytes each, base64 |
@@ -35,7 +36,7 @@ Never commit `.env.local`. Never print keys in logs.
 ```sh
 pnpm contracts:build
 pnpm contracts:test
-pnpm chain:cost <game account> [testnet|mainnet]   # live cost to open the town and per player
+pnpm chain:cost <game account>   # live cost to open the town and per player
 pnpm contracts:deploy                              # nft.<game>, items.<game>, town.<game>
 pnpm chain:setup                                   # relayer and shops
 ```

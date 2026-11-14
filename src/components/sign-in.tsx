@@ -78,15 +78,34 @@ function DevSignIn({ onStatus }: { onStatus: (s: Status) => void }) {
   );
 }
 
+/** Play now with no account at all. */
+function GuestSignIn({ onStatus }: { onStatus: (s: Status) => void }) {
+  const router = useRouter();
+  return (
+    <button
+      type="button"
+      className="text-ink-soft underline underline-offset-4"
+      onClick={async () => {
+        onStatus({ kind: "busy", text: "Getting your egg ready…" });
+        const res = await postJson("/api/session/guest", {});
+        if (!res.ok) return onStatus({ kind: "error", text: res.error ?? "Couldn't start. Try again." });
+        router.refresh();
+      }}
+    >
+      or jump in as a guest
+    </button>
+  );
+}
+
 export function SignIn({ devLogin }: { devLogin: boolean }) {
   const [status, setStatus] = useState<Status>({ kind: "idle" });
   return (
     <div className="flex w-full flex-col items-center gap-3">
       {privyEnabled && <PrivySignIn onStatus={setStatus} />}
       {devLogin && <DevSignIn onStatus={setStatus} />}
-      {!privyEnabled && !devLogin && <p className="text-ink-soft">Sign in is not set up yet.</p>}
+      <GuestSignIn onStatus={setStatus} />
       <p role="status" aria-live="polite" className={status.kind === "error" ? "text-danger" : "text-ink-soft"}>
-        {status.kind === "idle" ? "Takes a few seconds. No wallet app needed." : status.text}
+        {status.kind === "idle" ? "Free to play. No wallet app needed." : status.text}
       </p>
     </div>
   );

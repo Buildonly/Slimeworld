@@ -30,13 +30,11 @@ export const BPS = 10_000;
 
 // ---------- chain ----------
 
-export type Network = "testnet" | "mainnet";
-
-/** Free starter coins for each real player's slime and purse. Small on mainnet, where they are real money. */
-export const STARTER_COINS: Record<Network, { slime: Bits; purse: Bits }> = {
-  testnet: { slime: coins(250), purse: coins(125) },
-  mainnet: { slime: coins(50), purse: coins(25) },
-};
+/**
+ * Free play coins each new player's slime and purse start with. Coins have
+ * no cash value: they live on the testnet town, and top ups only buy more.
+ */
+export const STARTER_COINS: { slime: Bits; purse: Bits } = { slime: coins(250), purse: coins(125) };
 
 /** Town treasury fee on market sales, breeding and race pools (2 to 5 percent). */
 export const TREASURY_FEE_BPS = 300;

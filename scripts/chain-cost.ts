@@ -1,14 +1,13 @@
 /**
- * Print what opening the town and each new player costs, worked out live.
- *   NEAR_RPC_URL=<rpc> pnpm chain:cost <game account> [testnet|mainnet]
- * Needs built contracts (pnpm contracts:build). ONECLICK_URL, if set, adds
- * the wrapped NEAR registration that top ups need.
+ * Print what running the town costs, worked out live.
+ *   pnpm chain:cost <game account>
+ * Contracts run on testnet (NEAR_RPC_URL). On mainnet the game needs nothing
+ * up front: top ups land in the treasury's NEAR Intents balance.
+ * Needs built contracts (pnpm contracts:build).
  */
 import "dotenv/config";
 import { JsonRpcProvider } from "near-api-js";
-import type { Network } from "../src/economy/config";
 import { chainPrices } from "../src/near/costs";
-import { liveTokens } from "../src/topup/assets";
 import { total, workOutCost, type Line } from "./opening-cost";
 import { nearText, required } from "./script-env";
 
@@ -19,16 +18,14 @@ function print(title: string, lines: Line[]) {
 }
 
 async function main() {
-  const [gameId, net] = process.argv.slice(2);
-  if (!gameId) throw new Error("Usage: chain-cost <game account> [testnet|mainnet]");
-  const network: Network = net === "mainnet" ? "mainnet" : "testnet";
-  const provider = new JsonRpcProvider({ url: required("NEAR_RPC_URL") });
-  const prices = await chainPrices(provider);
-  const wrappedNear = network === "mainnet" && process.env.ONECLICK_URL ? (await liveTokens()).destination.contractAddress ?? null : null;
-  const cost = await workOutCost({ prices, provider, network, gameId, wrappedNear });
-  console.log(`Live prices: storage ${nearText(prices.storagePerByte)} NEAR per byte, gas ${prices.gasPrice} yocto per gas unit.`);
-  print("Opening the town", cost.opening);
-  print("Each new player", cost.perPlayer);
+  const [gameId] = process.argv.slice(2);
+  if (!gameId) throw new Error("Usage: chain-cost <game account>");
+  const prices = await chainPrices(new JsonRpcProvider({ url: required("NEAR_RPC_URL") }));
+  const cost = workOutCost({ prices, gameId });
+  console.log(`Live prices on ${process.env.NEAR_NETWORK ?? "the contracts' network"}: storage ${nearText(prices.storagePerByte)} NEAR per byte, gas ${prices.gasPrice} yocto per gas unit.`);
+  print("Opening the town (test NEAR)", cost.opening);
+  print("Each new player (test NEAR)", cost.perPlayer);
+  console.log("\nMainnet: 0 NEAR to open and 0 NEAR per player. Top ups go straight to the treasury's NEAR Intents balance.");
   for (const n of cost.notes) console.log(`- ${n}`);
 }
 

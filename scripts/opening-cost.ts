@@ -1,14 +1,15 @@
 /**
- * What opening the town and each new player costs on a network, worked out
+ * What opening the town and each new player costs on the contracts' network
+ * (testnet), worked out
  * live from that network's storage price, fee table and gas price, the
- * built contract sizes, and the wrapped NEAR token's own registration fee.
+ * built contract sizes. (Mainnet needs nothing: top ups land in the
+ * treasury's NEAR Intents balance, with no contract or account to fund.)
  * Nothing here is a guess or a constant: every figure comes from the chain
  * (or 1Click) at the moment it runs.
  */
 import { readFileSync } from "node:fs";
-import { teraToGas, type Provider } from "near-api-js";
-import { z } from "zod";
-import { ITEMS, STARTER_COINS, STARTING_SHOPS, YOCTO_PER_BIT, type Network } from "../src/economy/config";
+import { teraToGas } from "near-api-js";
+import { ITEMS, STARTER_COINS, STARTING_SHOPS, YOCTO_PER_BIT } from "../src/economy/config";
 import { accessKeyBytes, gasCost, receiptGas, storageCost, type ChainPrices } from "../src/near/costs";
 import { PLAYER_KEY_METHODS } from "../src/near/town-chain";
 
@@ -38,7 +39,7 @@ function newAccount(p: ChainPrices, what: string, extraBytes = 0n): Line {
   };
 }
 
-export async function workOutCost(args: { prices: ChainPrices; provider: Provider; network: Network; gameId: string; wrappedNear: string | null }): Promise<Cost> {
+export function workOutCost(args: { prices: ChainPrices; gameId: string }): Cost {
   const p = args.prices;
   const town = `town.${args.gameId}`;
   const notes: string[] = [];
@@ -58,18 +59,14 @@ export async function workOutCost(args: { prices: ChainPrices; provider: Provide
   opening.push({ what: `Open ${STARTING_SHOPS.length} shops`, storage: 0n, gasAtMost: STARTING_SHOPS.reduce((t, s) => t + callGas(p, "50", { shop_id: s.id, keeper_id: `k-${s.id}.${args.gameId}` }), 0n) });
   notes.push("Contract state (item types, shops, ledgers) is paid as it is written: the game tops each contract up by exactly what it is short.");
 
-  const starter = STARTER_COINS[args.network];
+  const starter = STARTER_COINS;
   const playerKeys = accessKeyBytes(p) + accessKeyBytes(p, { receiverId: town, methods: PLAYER_KEY_METHODS });
   const perPlayer: Line[] = [
     { what: "Player account (its key and town-only key)", storage: storageCost(p, playerKeys), gasAtMost: gasCost(p, receiptGas(p, { createAccount: true, transfer: true, addFullKey: true })) },
     newAccount(p, "Slime account"),
     { what: "Mint the slime, register its rules, add the town-only key", storage: 0n, gasAtMost: callGas(p, "100", {}) * 3n },
-    { what: `Starter coins (${(starter.slime + starter.purse) / 100n} coins, set in the economy config)`, storage: (starter.slime + starter.purse) * YOCTO_PER_BIT, gasAtMost: callGas(p, "100", {}) * 2n },
+    { what: `Free play coins (${(starter.slime + starter.purse) / 100n} coins, set in the economy config)`, storage: (starter.slime + starter.purse) * YOCTO_PER_BIT, gasAtMost: callGas(p, "100", {}) * 2n },
   ];
-  if (args.wrappedNear) {
-    const bounds = z.object({ min: z.string().regex(/^\d+$/) }).parse(await args.provider.callFunction({ contractId: args.wrappedNear, method: "storage_balance_bounds", args: {} }));
-    perPlayer.push({ what: `Wrapped NEAR registration on ${args.wrappedNear} (first top up only)`, storage: BigInt(bounds.min), gasAtMost: callGas(p, "50", { account_id: args.gameId, registration_only: true }) });
-  } else notes.push("Wrapped NEAR registration is left out: no 1Click token list on this network.");
   notes.push("Gas is an upper bound at today's gas price: unused gas is refunded.");
   return { opening, perPlayer, notes };
 }

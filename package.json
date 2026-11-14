@@ -24,9 +24,9 @@
     "check:screens": "node e2e/screens-check.cjs test-results/screens",
     "art:town": "blender -b -P art/blender/make_town.py -- .town.raw.glb art/town-preview.png && gltf-transform optimize .town.raw.glb public/models/town.glb --compress meshopt --join false --flatten false --instance false --palette false && rm .town.raw.glb",
     "check:voice": "tsx --tsconfig tsconfig.json scripts/voice-check.ts",
-    "mainnet:key": "tsx scripts/new-mainnet-key.ts",
-    "mainnet:open": "tsx --tsconfig tsconfig.json scripts/mainnet-bootstrap.ts",
-    "chain:cost": "tsx --tsconfig tsconfig.json scripts/chain-cost.ts"
+    "chain:cost": "tsx --tsconfig tsconfig.json scripts/chain-cost.ts",
+    "treasury:key": "tsx scripts/treasury-key.ts",
+    "proofs": "tsx --tsconfig tsconfig.json scripts/cheat-proofs.ts"
   },
   "packageManager": "pnpm@10.28.0",
   "dependencies": {

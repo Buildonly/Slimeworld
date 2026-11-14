@@ -16,10 +16,16 @@ describe("top up amounts", () => {
 });
 
 describe("live token list", () => {
-  it("finds wrapped NEAR and lists every other coin, sorted", () => {
-    const book = tokenBook([{ assetId: "x:usdc-b", decimals: 6, blockchain: "base", symbol: "USDC" }, wrapped, { assetId: "x:btc", decimals: 8, blockchain: "btc", symbol: "BTC" }, { junk: 1 }]);
+  it("finds wrapped NEAR and lists the most widely held coins first", () => {
+    const book = tokenBook([
+      { assetId: "x:usdc-b", decimals: 6, blockchain: "base", symbol: "USDC" },
+      wrapped,
+      { assetId: "x:aaa", decimals: 8, blockchain: "sol", symbol: "AAA" },
+      { assetId: "x:usdc-a", decimals: 6, blockchain: "arb", symbol: "USDC" },
+      { junk: 1 },
+    ]);
     expect(book.destination.contractAddress).toBe("wrapped.example");
-    expect(book.coins.map((c) => c.id)).toEqual(["x:btc", "x:usdc-b"]);
+    expect(book.coins.map((c) => c.id)).toEqual(["x:usdc-a", "x:usdc-b", "x:aaa"]);
     expect(book.coins[1]).toMatchObject({ label: "USDC · BASE", decimals: 6 });
   });
   it("fails loudly when wrapped NEAR is missing", () => {

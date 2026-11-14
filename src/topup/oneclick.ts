@@ -55,7 +55,7 @@ function headers(): Record<string, string> {
 
 /**
  * Ask 1Click to swap `amount` (base units) of `originAsset` into NEAR for
- * `recipient` (a NEAR mainnet account, registered on wrapped NEAR). `dry: true`
+ * the NEAR Intents balance of `recipient`. `dry: true`
  * just prices it.
  */
 export async function quote(args: { originAsset: string; amount: bigint; recipient: string; dry: boolean; fetcher?: typeof fetch }): Promise<Quote> {
@@ -71,12 +71,12 @@ export async function quote(args: { originAsset: string; amount: bigint; recipie
       depositType: "ORIGIN_CHAIN",
       destinationAsset: destination.assetId,
       amount: args.amount.toString(),
-      // If anything goes wrong the money comes back to the player's own NEAR
-      // account (as an Intents balance), so nobody has to type an address.
+      // Delivered to (and, if the swap fails, refunded to) the recipient's
+      // NEAR Intents balance: no token registration or account needed first.
       refundTo: args.recipient,
       refundType: "INTENTS",
       recipient: args.recipient,
-      recipientType: "DESTINATION_CHAIN",
+      recipientType: "INTENTS",
       deadline: new Date(Date.now() + DEADLINE_MS).toISOString(),
       ...(serverEnv().ONECLICK_REFERRAL ? { referral: serverEnv().ONECLICK_REFERRAL } : {}),
       quoteWaitingTimeMs: 3000,

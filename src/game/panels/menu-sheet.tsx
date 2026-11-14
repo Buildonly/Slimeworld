@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { FastForward, LogOut } from "lucide-react";
+import { FastForward, LogOut, ShieldCheck } from "lucide-react";
 import { DecisionItem } from "@/components/log/decision-item";
 import { MarketScreen } from "@/components/market/market-screen";
 import { RulesForm } from "@/components/rules/rules-screen";
@@ -66,6 +66,9 @@ export function MenuSheet({ slime, onClose, onSaved }: { slime: SlimeDto; onClos
           </div>
           <Link href="/fast" className="flex items-center gap-2 rounded-2xl bg-bg-soft p-3">
             <FastForward size={18} /> Watch the town a week ahead
+          </Link>
+          <Link href="/proof" className="flex items-center gap-2 rounded-2xl bg-bg-soft p-3">
+            <ShieldCheck size={18} /> Fair play: see the town refuse cheats
           </Link>
           {slime.chain?.status === "ready" && (
             <a className="rounded-2xl bg-bg-soft p-3" href={explorer("address", slime.chain.accountId)} target="_blank" rel="noreferrer">

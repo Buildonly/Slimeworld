@@ -54,7 +54,11 @@ Three contracts live under the game account you choose (`NEAR_GAME_ACCOUNT`):
 | Items | `items.<game account>` | NEP-245 |
 | Town | `town.<game account>` | Coins, rules, shops, jobs, treasury |
 
-What opening the town and each new player costs is worked out live from the network's own prices: `pnpm chain:cost <game account> [testnet|mainnet]`. Nothing is fixed in code; accounts get exactly their storage, and the game tops up any of its accounts by just what it is short.
+These contracts run on testnet, where coins are play money with no cash value. The public **Fair play** page (`/proof`) shows live numbers from the town contract and real transactions where it refused cheats; `pnpm proofs` records fresh ones.
+
+On mainnet the game needs no contract and no NEAR to open: top ups from any chain go through NEAR Intents 1Click straight into the game treasury's Intents balance (`TOPUP_TREASURY_ACCOUNT`, made by `pnpm treasury:key`), and the player gets coins for exactly what was delivered. Players can start as guests, with no email and no wallet.
+
+What running the testnet town costs is worked out live from the network's own prices: `pnpm chain:cost <game account>`. Nothing is fixed in code; accounts get exactly their storage, and the game tops up any of its accounts by just what it is short.
 
 Source in [contracts/](contracts/). `pnpm contracts:test` runs the unit tests; CI also runs a sandbox end-to-end test.
 

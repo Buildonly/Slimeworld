@@ -33,7 +33,7 @@ async function main() {
     await game.createAccount({ newAccountId: id, publicKey, nearToTransfer: storageCost(prices, accessKeyBytes(prices)) });
   }
   // Amounts come from the economy config: the starter wallet, and real item prices.
-  const wallet = STARTER_COINS.testnet.slime;
+  const wallet = STARTER_COINS.slime;
   const berryPrice = ITEM_BY_ID.get("berries")!.basePrice;
   const hat = [...ITEM_BY_ID.values()].find((i) => i.category === "Hat")!.basePrice;
   const dailyLimit = wallet / 2n;

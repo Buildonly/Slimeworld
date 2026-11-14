@@ -43,6 +43,13 @@
       "when": 1794630316060,
       "tag": "0005_curly_miek",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794636354995,
+      "tag": "0006_smiling_scarecrow",
+      "breakpoints": true
     }
   ]
 }

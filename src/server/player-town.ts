@@ -31,7 +31,7 @@ export async function hatchForPlayer(db: Db, playerId: string, name: string, col
 
   const result = await withWorld(db, async (world, tx) => {
     // Public name in town news: never the email.
-    const starter = STARTER_COINS[serverEnv().NEAR_NETWORK];
+    const starter = STARTER_COINS;
     const p = ensurePlayer(world, playerId, `${name}'s keeper`, starter.purse);
     const slime = hatch(world, p.id, name, colour, starter.slime);
     const key = KeyPair.fromRandom("ed25519");

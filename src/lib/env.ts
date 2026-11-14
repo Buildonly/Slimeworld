@@ -19,6 +19,7 @@ const serverEnvSchema = z.object({
   NEAR_AI_LISTEN_MODEL: z.string().min(1).optional(),
   ONECLICK_URL: z.string().url().optional(),
   ONECLICK_REFERRAL: z.string().min(1).max(40).optional(),
+  TOPUP_TREASURY_ACCOUNT: z.string().regex(/^[a-z0-9._-]{2,64}$/).optional(),
   ELEVENLABS_URL: z.string().url().optional(),
   ELEVENLABS_MODEL: z.string().min(1).optional(),
   ONECLICK_JWT: z.string().min(1).optional(),
