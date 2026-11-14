@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { FastForward, LogOut, ShieldCheck } from "lucide-react";
+import { FastForward, HelpCircle, ShieldCheck } from "lucide-react";
 import { DecisionItem } from "@/components/log/decision-item";
 import { BuiltOnNear } from "@/components/brand/near-logo";
 import { SignIn } from "@/components/sign-in";
+import { SignOut } from "@/components/sign-out";
 import { GooPanel } from "@/components/wallet/goo-panel";
 import { WalletPanel } from "@/components/wallet/wallet-panel";
 import { MarketScreen } from "@/components/market/market-screen";
@@ -19,7 +19,7 @@ import { explorer } from "@/lib/format";
 import { usePoll } from "@/lib/use-poll";
 import { GameSheet } from "./sheet";
 
-const TABS = ["Journal", "Rules", "Wallet", "Market", "Town", "More"] as const;
+const TABS = ["Journal", "Rules", "Wallet", "Market", "Town", "Account"] as const;
 type Tab = (typeof TABS)[number];
 
 function Journal({ slime }: { slime: SlimeDto }) {
@@ -41,9 +41,8 @@ function Town() {
   return data ? <WorldPanels world={data} /> : <Loading label="Asking around town…" />;
 }
 
-export function MenuSheet({ slime, guest, onClose, onSaved }: { slime: SlimeDto; guest: boolean; onClose: () => void; onSaved: () => void }) {
+export function MenuSheet({ slime, guest, email, onClose, onSaved }: { slime: SlimeDto; guest: boolean; email: string | null; onClose: () => void; onSaved: () => void }) {
   const [tab, setTab] = useState<Tab>("Journal");
-  const router = useRouter();
   return (
     <GameSheet title={tab === "Journal" ? `${slime.name}'s journal` : tab} onClose={onClose} wide>
       <div className="-mx-1 mb-4 flex gap-1 overflow-x-auto" role="tablist">
@@ -68,8 +67,12 @@ export function MenuSheet({ slime, guest, onClose, onSaved }: { slime: SlimeDto;
       )}
       {tab === "Market" && <MarketScreen signedIn />}
       {tab === "Town" && <Town />}
-      {tab === "More" && (
+      {tab === "Account" && (
         <div className="flex flex-col gap-3">
+          <div className="rounded-2xl bg-bg-soft p-3">
+            <p className="text-sm text-ink-soft">Signed in as</p>
+            <p className="font-semibold break-all">{guest ? "Guest" : (email ?? "Your account")}</p>
+          </div>
           {guest && (
             <div className="flex flex-col gap-2 rounded-2xl border border-accent/40 bg-accent/10 p-3">
               <p className="font-semibold">Keep {slime.name} forever</p>
@@ -81,6 +84,9 @@ export function MenuSheet({ slime, guest, onClose, onSaved }: { slime: SlimeDto;
             <span>Light or dark</span>
             <ThemeToggle />
           </div>
+          <Link href="/how" className="flex items-center gap-2 rounded-2xl bg-bg-soft p-3">
+            <HelpCircle size={18} /> How it works
+          </Link>
           <Link href="/fast" className="flex items-center gap-2 rounded-2xl bg-bg-soft p-3">
             <FastForward size={18} /> Watch the town a week ahead
           </Link>
@@ -92,16 +98,7 @@ export function MenuSheet({ slime, guest, onClose, onSaved }: { slime: SlimeDto;
               🔗 See {slime.name}&apos;s own wallet on NEAR
             </a>
           )}
-          <button
-            type="button"
-            className="flex items-center gap-2 rounded-2xl bg-bg-soft p-3 text-left"
-            onClick={async () => {
-              await fetch("/api/session", { method: "DELETE" });
-              router.refresh();
-            }}
-          >
-            <LogOut size={18} /> Sign out
-          </button>
+          <SignOut guest={guest} name={slime.name} />
           <BuiltOnNear className="justify-center pt-2 text-sm text-ink-soft" />
         </div>
       )}

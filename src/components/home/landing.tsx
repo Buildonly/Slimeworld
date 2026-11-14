@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { FastForward } from "lucide-react";
+import { FastForward, HelpCircle } from "lucide-react";
 import { SignIn } from "@/components/sign-in";
 import { SlimeMark } from "@/components/shell/logo";
 import { BuiltOnNear } from "@/components/brand/near-logo";
@@ -53,9 +53,14 @@ export function Landing({ devLogin }: { devLogin: boolean }) {
               <p className="text-sm text-ink-soft">The town is waking up…</p>
             )}
             {news && <p className="mt-1 font-medium">📰 {news.text}</p>}
-            <Link href="/fast" className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-accent">
-              <FastForward size={16} /> Watch a week in a minute
-            </Link>
+            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+              <Link href="/fast" className="inline-flex items-center gap-1.5 text-sm font-semibold text-accent">
+                <FastForward size={16} /> Watch a week in a minute
+              </Link>
+              <Link href="/how" className="inline-flex items-center gap-1.5 text-sm font-semibold text-accent">
+                <HelpCircle size={16} /> How it works
+              </Link>
+            </div>
           </div>
           <button
             type="button"

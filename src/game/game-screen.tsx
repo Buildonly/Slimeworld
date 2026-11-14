@@ -320,7 +320,7 @@ export function GameScreen() {
       )}
       {ready && <Welcome name={slime.name} />}
       {panel?.kind === "square" && <SquareSheet slimes={t.slimes} events={t.events} giftMax={Number(GIFT_MAX / 100n)} onClose={() => setPanel(null)} onChanged={() => void Promise.all([home.refresh(), town.refresh()])} />}
-      {panel?.kind === "menu" && <MenuSheet slime={slime} guest={home.data.player?.guest ?? false} onClose={() => setPanel(null)} onSaved={home.refresh} />}
+      {panel?.kind === "menu" && <MenuSheet slime={slime} guest={home.data.player?.guest ?? false} email={home.data.player?.email ?? null} onClose={() => setPanel(null)} onSaved={home.refresh} />}
     </div>
   );
 }

@@ -39,7 +39,7 @@ export async function GET() {
   const game = gameAccount()?.accountId ?? "";
   const body: HomeDto = {
     clock: clock(world),
-    player: player ? { id: player.id, wallet: player.wallet.toString(), nearAccountId: account?.nearAccountId ?? null, guest: account?.guest ?? false } : null,
+    player: player ? { id: player.id, wallet: player.wallet.toString(), nearAccountId: account?.nearAccountId ?? null, guest: account?.guest ?? false, email: account?.email ?? null } : null,
     slimes: slimes.map(({ slime, chain }) => slimeDto(world, slime, chain ? { accountId: chain.accountId, nftTokenId: chain.nftTokenId, status: chain.status } : null)),
     recent,
     feedPrice: food?.toString() ?? null,

@@ -8,7 +8,7 @@ A town of AI slimes that earn, spend and trade with real money on NEAR, and you 
 
 - Players who love pet games (Tamagotchi, Neopets, Slime Rancher) and collecting.
 - People new to crypto: no seed phrase, no gas, no jargon on screen.
-- Hackathon judges, who need to see a living economy in under three minutes.
+- Newcomers, who need to see a living economy within their first few minutes.
 
 ## The slime
 
@@ -92,5 +92,5 @@ The slime acts alone inside these rules. Every decision is logged with its reaso
 ## Success looks like
 
 - A new player hatches and feeds a slime in under 60 seconds.
-- A judge sees prices move and a shop go broke within the demo.
+- A new visitor sees prices move and a shop go broke within minutes (fast forward).
 - Every slime decision shows its reason and its verification.

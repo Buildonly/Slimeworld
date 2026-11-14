@@ -16,6 +16,7 @@ const SCREENS = [
   { path: "/rules", expect: "Daily spending limit" },
   { path: "/world", expect: "Economy weather" },
   { path: "/fast", expect: "Fast forward" },
+  { path: "/how", expect: "How Slimeworld works" },
 ];
 const SETUPS = [
   { name: "phone-light", viewport: { width: 390, height: 844 }, colorScheme: "light" },
