@@ -136,3 +136,27 @@ export const voiceLines = pgTable("voice_lines", {
   audio: bytea("audio").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+/** Top ups from any chain through NEAR Intents 1Click. */
+export const topups = pgTable(
+  "topups",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    playerId: text("player_id").notNull(),
+    coinId: text("coin_id").notNull(),
+    /** What the player sends, in the coin's base units. */
+    amountIn: text("amount_in").notNull(),
+    depositAddress: text("deposit_address").notNull().unique(),
+    depositMemo: text("deposit_memo"),
+    /** The full signed quote from 1Click, kept to settle any dispute. */
+    quote: jsonb("quote").notNull(),
+    /** 1Click status: PENDING_DEPOSIT, PROCESSING, SUCCESS, REFUNDED, FAILED... */
+    status: text("status").notNull().default("PENDING_DEPOSIT"),
+    /** Bits credited to the player once the NEAR arrived and went into the town. */
+    creditedBits: bigint("credited_bits", { mode: "bigint" }),
+    creditTx: text("credit_tx"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("topups_player_idx").on(t.playerId, t.id)],
+);

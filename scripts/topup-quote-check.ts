@@ -6,11 +6,8 @@ import "dotenv/config";
 import { TOPUP_COINS, parseUnits } from "@/topup/assets";
 import { quote } from "@/topup/oneclick";
 
-const REFUND: Record<string, string> = {
-  Solana: "11111111111111111111111111111111",
-  Bitcoin: "bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq",
-  NEAR: "slimeworld.near",
-};
+/** Dry quotes need a recipient already registered on wrap.near. */
+const PREVIEW_RECIPIENT = "intents.near";
 
 const SAMPLES: [string, string][] = [
   ["usdc-base", "5"],
@@ -27,8 +24,7 @@ async function main() {
     const q = await quote({
       originAsset: coin.assetId,
       amount: units,
-      recipient: "slimeworld.near",
-      refundTo: REFUND[coin.chain] ?? "0x0000000000000000000000000000000000000001",
+      recipient: PREVIEW_RECIPIENT,
       dry: true,
     });
     console.log(`${amount} ${coin.label.padEnd(17)} -> ${q.quote.amountOutFormatted} NEAR (~$${q.quote.amountInUsd ?? "?"}), about ${q.quote.timeEstimate}s`);

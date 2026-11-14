@@ -36,6 +36,13 @@
       "when": 1794598689593,
       "tag": "0004_black_thanos",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794630316060,
+      "tag": "0005_curly_miek",
+      "breakpoints": true
     }
   ]
 }

@@ -16,6 +16,7 @@ import { LoadingScreen } from "./hud/loading-screen";
 import { Minimap } from "./hud/minimap";
 import { SlimeBadge } from "./hud/slime-badge";
 import { spawnPoint, townLayout, type Spot } from "./layout";
+import { CoinsSheet } from "./panels/coins-sheet";
 import { JobsSheet } from "./panels/jobs-sheet";
 import { MenuSheet } from "./panels/menu-sheet";
 import { RaceSheet } from "./panels/race-sheet";
@@ -24,7 +25,7 @@ import { useControls } from "./use-controls";
 
 const GameScene = dynamic(() => import("./game-scene"), { ssr: false });
 
-type Panel = { kind: "shop"; id: string } | { kind: "jobs" } | { kind: "races" } | { kind: "menu" } | null;
+type Panel = { kind: "shop"; id: string } | { kind: "jobs" } | { kind: "races" } | { kind: "menu" } | { kind: "coins" } | null;
 
 const SEASON_EMOJI: Record<string, string> = { calm: "🌤️", heatwave: "🔥", harvest: "🌾", festival: "🎪" };
 
@@ -163,9 +164,14 @@ export function GameScreen() {
           <SlimeBadge slime={slime} onOpen={() => setPanel({ kind: "menu" })} />
           <div className="flex flex-col items-end gap-2">
             <div className="flex items-center gap-2">
-              <span className="rounded-full bg-card/85 px-3 py-2 text-sm font-semibold shadow-lg backdrop-blur" aria-label={`${slime.name}'s coins`}>
-                🪙 {formatBits(slime.wallet)}
-              </span>
+              <button
+                type="button"
+                onClick={() => setPanel({ kind: "coins" })}
+                className="pointer-events-auto rounded-full bg-card/85 px-3 py-2 text-sm font-semibold shadow-lg backdrop-blur"
+                aria-label={`${slime.name}'s coins. Add coins`}
+              >
+                🪙 {formatBits(slime.wallet)} <span className="text-accent">+</span>
+              </button>
               <span className="hidden rounded-full bg-card/85 px-3 py-2 text-sm shadow-lg backdrop-blur sm:inline">
                 {night ? "🌙" : SEASON_EMOJI[t.clock.season] ?? "🌤️"} Day {t.clock.day} · {String(t.clock.hour).padStart(2, "0")}:00
               </span>
@@ -259,6 +265,17 @@ export function GameScreen() {
           busy={busy}
           onClose={() => setPanel(null)}
           onEnter={(kind) => act({ action: "race", kind }, kind === "race" ? "I'm so fast!" : "My brain is ready!")}
+        />
+      )}
+      {panel?.kind === "coins" && (
+        <CoinsSheet
+          slimeName={slime.name}
+          slimeCoins={slime.wallet}
+          playerCoins={home.data.player?.wallet ?? "0"}
+          busy={busy}
+          onClose={() => setPanel(null)}
+          onChanged={() => void home.refresh()}
+          onGive={(amount) => act({ action: "topup", amount }, "Coins! I'll spend them wisely.", "spin")}
         />
       )}
       {panel?.kind === "menu" && <MenuSheet slime={slime} network={home.data.contracts.network} onClose={() => setPanel(null)} onSaved={home.refresh} />}
