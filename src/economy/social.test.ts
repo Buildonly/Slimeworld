@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { coins, GIFT_MAX } from "./config";
 import { ensurePlayer, hatch } from "./actions";
-import { cheer, giftTo } from "./social";
+import { cheer, giftTo, inviteGift } from "./social";
 import { createTown } from "./world";
 
 function town() {
@@ -45,5 +45,14 @@ describe("social", () => {
     const townSlime = Object.values(world.slimes).find((s) => s.ownerId === null)!;
     expect(giftTo(world, "real-a", townSlime.id, coins(1)).ok).toBe(false);
     expect(world.journal).toEqual([]);
+  });
+  it("pays both keepers when an invited friend hatches, through the money journal", () => {
+    const { world } = town();
+    const r = inviteGift(world, "real-a", "real-b", coins(50));
+    expect(r.ok).toBe(true);
+    expect(world.players["real-a"]!.wallet).toBe(coins(150));
+    expect(world.players["real-b"]!.wallet).toBe(coins(150));
+    expect(world.journal).toHaveLength(2);
+    expect(world.events.at(-1)).toMatchObject({ kind: "invited" });
   });
 });

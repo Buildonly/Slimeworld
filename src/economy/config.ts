@@ -233,6 +233,12 @@ export const CHEER_JOY = 8;
 export const GIFT_MAX = coins(50);
 /** Gifts one player can send per real day. */
 export const GIFTS_PER_DAY = 5;
+/** Free coins each side gets when an invited friend hatches their first slime. */
+export const INVITE_GIFT = coins(50);
+/** Invites one player is rewarded for per week. */
+export const INVITES_REWARDED_PER_WEEK = 5;
+/** Most keepers in one clan. */
+export const CLAN_MAX_MEMBERS = 20;
 /** Simulated owners top up a slime that drops below this. */
 export const OWNER_TOP_UP_BELOW: Bits = coins(40);
 export const OWNER_TOP_UP_AMOUNT: Bits = coins(80);

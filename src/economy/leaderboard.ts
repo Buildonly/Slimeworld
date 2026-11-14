@@ -5,7 +5,7 @@
 import type { Bits } from "./config";
 import type { World } from "./types";
 
-export type BoardId = "richest" | "earners" | "champions" | "cheered" | "keepers" | "shops";
+export type BoardId = "richest" | "earners" | "champions" | "cheered" | "keepers" | "clans" | "shops";
 export type BoardEntry = {
   rank: number;
   id: string;

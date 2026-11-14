@@ -3,6 +3,7 @@ import { db } from "@/db/client";
 import { serverEnv } from "@/lib/env";
 import { clientIp, fail, readJson } from "@/server/http";
 import { ensureNearAccount, signInFrom } from "@/server/players";
+import { applyInviteCookie } from "@/server/invites";
 import { allow } from "@/server/rate-limit";
 import { currentPlayerId, setSessionCookie } from "@/server/session";
 
@@ -21,6 +22,7 @@ export async function POST(req: Request) {
 
   const player = await signInFrom(db(), await currentPlayerId(), `dev:${body.email.toLowerCase()}`, body.email.toLowerCase());
   await setSessionCookie(player.id);
+  await applyInviteCookie(db(), player.id).catch(() => undefined);
   try {
     return Response.json({ ok: true, player: await ensureNearAccount(db(), player.id) });
   } catch (err) {

@@ -4,6 +4,7 @@ import { Providers } from "@/components/providers";
 import { AppShell } from "@/components/shell/app-shell";
 import { ToastProvider } from "@/components/ui/toast";
 import "./globals.css";
+import { RefCapture } from "@/components/social/ref-capture";
 
 const round = Fredoka({ subsets: ["latin"], variable: "--font-round" });
 
@@ -35,6 +36,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body className="min-h-dvh antialiased">
         <Providers>
           <ToastProvider>
+            <RefCapture />
             <AppShell>{children}</AppShell>
           </ToastProvider>
         </Providers>

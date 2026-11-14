@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { FriendsPanel } from "@/components/social/friends-panel";
 import { LeaderboardView } from "@/components/social/leaderboard-view";
 import { SlimeActions } from "@/components/social/slime-actions";
 import { SlimeDot } from "@/components/social/slime-dot";
@@ -10,7 +11,7 @@ import type { EventDto, TownSlimeDto } from "@/lib/dto";
 import { MOOD } from "@/lib/format";
 import { GameSheet } from "./sheet";
 
-const TABS = ["Ranks", "Players", "News"] as const;
+const TABS = ["Ranks", "Friends", "Players", "News"] as const;
 type Tab = (typeof TABS)[number];
 const NEWS_ICON: Record<string, string> = { cheered: "💖", gift: "🎁", contest: "🏁", shop_closed: "🏚️", shop_reopened: "🏪", invested: "📈", season: "🌤️", hoard: "📦", asleep: "💤", woke: "☀️", fed_by_friend: "🍓" };
 
@@ -21,17 +22,18 @@ export function SquareSheet({ slimes, events, giftMax, onClose, onChanged }: { s
   const [open, setOpen] = useState<string | null>(null);
   return (
     <GameSheet title="⛲ Town square" subtitle="Meet other keepers and see who's winning." onClose={onClose} wide>
-      <div className="mb-3 flex gap-2" role="tablist">
+      <div className="mb-3 flex gap-2 overflow-x-auto" role="tablist">
         {TABS.map((t) => (
-          <button key={t} role="tab" aria-selected={tab === t} onClick={() => setTab(t)} className="rounded-full px-4 py-1.5 aria-selected:bg-ink aria-selected:text-bg">
+          <button key={t} role="tab" aria-selected={tab === t} onClick={() => setTab(t)} className="shrink-0 rounded-full px-4 py-1.5 aria-selected:bg-ink aria-selected:text-bg">
             {t}
           </button>
         ))}
       </div>
       {tab === "Ranks" && <LeaderboardView compact />}
+      {tab === "Friends" && <FriendsPanel />}
       {tab === "Players" &&
         (friends.length === 0 ? (
-          <Empty title="No other keepers here yet">Share your slime&apos;s page to bring friends to town!</Empty>
+          <Empty title="No other keepers here yet">Invite friends from the Friends tab!</Empty>
         ) : (
           <ul className="flex flex-col gap-2">
             {friends.map((s) => (

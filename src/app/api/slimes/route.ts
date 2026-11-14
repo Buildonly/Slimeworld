@@ -3,6 +3,7 @@ import { z } from "zod";
 import { db } from "@/db/client";
 import { fail, readJson } from "@/server/http";
 import { processChainOps } from "@/server/chain-worker";
+import { rewardInvite } from "@/server/invites";
 import { hatchForPlayer } from "@/server/player-town";
 import { allow } from "@/server/rate-limit";
 import { currentPlayerId } from "@/server/session";
@@ -22,5 +23,7 @@ export async function POST(req: Request) {
   const r = await hatchForPlayer(db(), playerId, body.name, body.colour);
   if (!r.ok) return fail(409, r.message);
   after(() => processChainOps(db()).catch(() => undefined));
-  return Response.json({ ok: true, slimeId: r.slimeId });
+  // A friend who came through an invite link: both keepers get their gift now (once).
+  const invited = await rewardInvite(db(), playerId).catch(() => false);
+  return Response.json({ ok: true, slimeId: r.slimeId, invited });
 }

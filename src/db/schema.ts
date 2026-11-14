@@ -16,6 +16,12 @@ export const players = pgTable("players", {
   chainReady: boolean("chain_ready").notNull().default(false),
   /** The player's own NEAR wallet, proven with a signed message (NEP-413). */
   walletAccountId: text("wallet_account_id").unique(),
+  /** Short code in this player's invite link. */
+  inviteCode: text("invite_code").unique(),
+  /** Who invited them, and whether the invite gift has been paid. */
+  invitedBy: text("invited_by"),
+  inviteRewarded: boolean("invite_rewarded").notNull().default(false),
+  clanId: text("clan_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -170,5 +176,15 @@ export const topups = pgTable(
 export const walletChallenges = pgTable("wallet_challenges", {
   nonce: text("nonce").primaryKey(),
   playerId: text("player_id").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Groups of keepers who play together and share a clan leaderboard. */
+export const clans = pgTable("clans", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  /** Code friends use to join. */
+  code: text("code").notNull().unique(),
+  createdBy: text("created_by").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

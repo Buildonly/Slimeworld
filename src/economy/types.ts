@@ -106,7 +106,8 @@ export type GameEventKind =
   | "fed_by_friend"
   | "hoard"
   | "cheered"
-  | "gift";
+  | "gift"
+  | "invited";
 
 export type GameEvent = { tick: number; kind: GameEventKind; text: string; shopId?: string; slimeId?: string };
 

@@ -45,3 +45,22 @@ export function giftTo(world: World, playerId: string, slimeId: string, amount: 
   remember(slime, `${player.name} gave me ${formatCoins(amount)} coins!`);
   return { ok: true, message: `You gave ${slime.name} ${formatCoins(amount)} coins!`, event: news(world, { kind: "gift", slimeId, text: `${player.name} gave ${slime.name} ${formatCoins(amount)} coins.` }) };
 }
+
+/**
+ * A friend someone invited just hatched their first slime: both keepers get
+ * free play coins from the town. Recorded in the money journal like any
+ * other town payment, so the chain mirrors it.
+ */
+export function inviteGift(world: World, inviterId: string | null, friendId: string, amount: Bits): SocialResult {
+  const friend = world.players[friendId];
+  if (!friend || amount <= 0n) return { ok: false, message: "Nobody to reward." };
+  friend.wallet += amount;
+  record(world, { from: { kind: "town" }, to: playerParty(friendId), amount, kind: "gift", memo: "invite gift" });
+  const inviter = inviterId ? world.players[inviterId] : undefined;
+  if (inviter) {
+    inviter.wallet += amount;
+    record(world, { from: { kind: "town" }, to: playerParty(inviter.id), amount, kind: "gift", memo: "invite gift" });
+  }
+  const text = inviter ? `${inviter.name} brought ${friend.name} to town. Both got ${formatCoins(amount)} coins!` : `${friend.name} joined the town.`;
+  return { ok: true, message: `You both got ${formatCoins(amount)} coins!`, event: news(world, { kind: "invited", text }) };
+}
