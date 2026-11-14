@@ -9,15 +9,19 @@
 import "dotenv/config";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { Account, JsonRpcProvider, KeyPair, teraToGas, type KeyPairString } from "near-api-js";
-import { STARTING_SHOPS, YOCTO_PER_BIT, YOCTO_PER_NEAR, coins } from "@/economy/config";
+import { CHAIN_SETUP, STARTING_SHOPS, YOCTO_PER_BIT, type Network } from "@/economy/config";
 import { contractIds } from "@/near/contracts";
 
-const RELAYER_FUNDING = 2n * YOCTO_PER_NEAR;
-const KEEPER_FLOAT = coins(300) * YOCTO_PER_BIT;
-const GAME_FLOAT = coins(1000) * YOCTO_PER_BIT;
+const NETWORK = (process.env.NEAR_NETWORK === "mainnet" ? "mainnet" : "testnet") as Network;
+const RPC = process.env.NEAR_RPC_URL ?? (NETWORK === "mainnet" ? "https://free.rpc.fastnear.com" : "https://test.rpc.fastnear.com");
+const RELAYER_FUNDING = CHAIN_SETUP[NETWORK].relayerYocto;
+const KEEPER_FLOAT = CHAIN_SETUP[NETWORK].keeperFloat * YOCTO_PER_BIT;
+const GAME_FLOAT = CHAIN_SETUP[NETWORK].gameFloat * YOCTO_PER_BIT;
+/** Env files to update: the network's own file when bootstrapping mainnet. */
+const ENV_FILES = (process.env.DOTENV_CONFIG_PATH ?? ".env,.env.local").split(",");
 
 function setEnv(key: string, value: string) {
-  for (const file of [".env", ".env.local"]) {
+  for (const file of ENV_FILES) {
     const lines = existsSync(file) ? readFileSync(file, "utf8").split("\n") : [];
     const i = lines.findIndex((l) => l.startsWith(`${key}=`));
     if (i >= 0) lines[i] = `${key}=${value}`;
@@ -30,7 +34,7 @@ async function main() {
   const gameId = process.env.NEAR_GAME_ACCOUNT;
   const key = process.env.NEAR_GAME_PRIVATE_KEY as KeyPairString | undefined;
   if (!gameId || !key) throw new Error("Set NEAR_GAME_ACCOUNT and NEAR_GAME_PRIVATE_KEY");
-  const provider = new JsonRpcProvider({ url: process.env.NEAR_RPC_URL ?? "https://test.rpc.fastnear.com" });
+  const provider = new JsonRpcProvider({ url: RPC });
   const game = new Account(gameId, provider, key);
   const { town } = contractIds(gameId);
   const gas = teraToGas("50");

@@ -23,10 +23,10 @@ function decision(world: World, slime: Slime, d: Pick<Decision, "action" | "targ
 }
 
 /** Add a signed-in player to the town (once). */
-export function ensurePlayer(world: World, id: string, name: string): Player {
+export function ensurePlayer(world: World, id: string, name: string, purse: Bits = PLAYER_STARTER_WALLET): Player {
   const existing = world.players[id];
   if (existing) return existing;
-  const player: Player = { id, name, wallet: PLAYER_STARTER_WALLET, care: "real" };
+  const player: Player = { id, name, wallet: purse, care: "real" };
   world.players[id] = player;
   return player;
 }
@@ -41,8 +41,9 @@ export function ownedSlime(world: World, playerId: string, slimeId: string): Sli
   return slime && slime.ownerId === playerId ? slime : null;
 }
 
-export function hatch(world: World, playerId: string, name: string, colour?: SlimeColour): Slime {
+export function hatch(world: World, playerId: string, name: string, colour?: SlimeColour, starter?: Bits): Slime {
   const slime = hatchSlime(world, { ownerId: playerId, name, colour });
+  if (starter !== undefined) slime.wallet = starter;
   slime.lastCareTick = world.tick;
   return slime;
 }

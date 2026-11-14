@@ -30,6 +30,20 @@ export const BPS = 10_000;
 
 // ---------- chain ----------
 
+export type Network = "testnet" | "mainnet";
+
+/** Free starter coins for each real player's slime and purse. Small on mainnet, where they are real money. */
+export const STARTER_COINS: Record<Network, { slime: Bits; purse: Bits }> = {
+  testnet: { slime: coins(250), purse: coins(125) },
+  mainnet: { slime: coins(50), purse: coins(25) },
+};
+
+/** NEAR the game sets aside on chain when it opens: relayer gas, shop and game coin floats, contract headroom. */
+export const CHAIN_SETUP: Record<Network, { relayerYocto: bigint; keeperFloat: Bits; gameFloat: Bits; contractHeadroomYocto: bigint }> = {
+  testnet: { relayerYocto: 2n * 10n ** 24n, keeperFloat: coins(300), gameFloat: coins(1000), contractHeadroomYocto: 5n * 10n ** 23n },
+  mainnet: { relayerYocto: 5n * 10n ** 23n, keeperFloat: coins(100), gameFloat: coins(300), contractHeadroomYocto: 1n * 10n ** 23n },
+};
+
 /** NEAR sent to a new player or slime account so it can pay its own storage. */
 export const PLAYER_ACCOUNT_FUNDING_YOCTO = YOCTO_PER_NEAR / 100n; // 0.01 NEAR
 

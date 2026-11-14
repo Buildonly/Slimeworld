@@ -9,11 +9,14 @@
 import "dotenv/config";
 import { readFileSync } from "node:fs";
 import { Account, JsonRpcProvider, KeyPair, teraToGas, type KeyPairString } from "near-api-js";
-import { ITEMS, TREASURY_FEE_BPS, YOCTO_PER_NEAR } from "../src/economy/config";
+import { CHAIN_SETUP, ITEMS, TREASURY_FEE_BPS, type Network } from "../src/economy/config";
 import { contractIds } from "../src/near/contracts";
 
 const STORAGE_YOCTO_PER_BYTE = 10n ** 19n;
-const EXTRA_NEAR = YOCTO_PER_NEAR / 2n; // room for state as the game grows
+const NETWORK = (process.env.NEAR_NETWORK === "mainnet" ? "mainnet" : "testnet") as Network;
+const RPC = process.env.NEAR_RPC_URL ?? (NETWORK === "mainnet" ? "https://free.rpc.fastnear.com" : "https://test.rpc.fastnear.com");
+/** Room for contract state as the game grows. */
+const EXTRA_NEAR = CHAIN_SETUP[NETWORK].contractHeadroomYocto;
 
 async function exists(provider: JsonRpcProvider, id: string): Promise<boolean> {
   try {
@@ -41,7 +44,7 @@ async function main() {
   const gameId = process.env.NEAR_GAME_ACCOUNT;
   const key = process.env.NEAR_GAME_PRIVATE_KEY as KeyPairString | undefined;
   if (!gameId || !key) throw new Error("Set NEAR_GAME_ACCOUNT and NEAR_GAME_PRIVATE_KEY");
-  const provider = new JsonRpcProvider({ url: process.env.NEAR_RPC_URL ?? "https://test.rpc.fastnear.com" });
+  const provider = new JsonRpcProvider({ url: RPC });
   const game = new Account(gameId, provider, key);
   const publicKey = KeyPair.fromString(key).getPublicKey();
   const ids = contractIds(gameId);

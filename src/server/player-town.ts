@@ -6,8 +6,8 @@ import { and, count, eq } from "drizzle-orm";
 import { KeyPair } from "near-api-js";
 import type { Db } from "@/db/client";
 import { chainOps, players, slimeAccounts } from "@/db/schema";
-import { enterRace, ensurePlayer, feed, giveItem, hatch, PLAYER_STARTER_WALLET, play, sendToJob, setRules, slimesOf, topUpSlime, type ActionResult } from "@/economy/actions";
-import { STARTER_WALLET, type Bits } from "@/economy/config";
+import { enterRace, ensurePlayer, feed, giveItem, hatch, play, sendToJob, setRules, slimesOf, topUpSlime, type ActionResult } from "@/economy/actions";
+import { STARTER_COINS, type Bits } from "@/economy/config";
 import { invest } from "@/economy/shops";
 import type { Rules, SlimeColour } from "@/economy/types";
 import { serverEnv } from "@/lib/env";
@@ -31,8 +31,9 @@ export async function hatchForPlayer(db: Db, playerId: string, name: string, col
 
   const result = await withWorld(db, async (world, tx) => {
     // Public name in town news: never the email.
-    const p = ensurePlayer(world, playerId, `${name}'s keeper`);
-    const slime = hatch(world, p.id, name, colour);
+    const starter = STARTER_COINS[serverEnv().NEAR_NETWORK];
+    const p = ensurePlayer(world, playerId, `${name}'s keeper`, starter.purse);
+    const slime = hatch(world, p.id, name, colour, starter.slime);
     const key = KeyPair.fromRandom("ed25519");
     await tx.insert(slimeAccounts).values({
       slimeId: slime.id,
@@ -43,7 +44,7 @@ export async function hatchForPlayer(db: Db, playerId: string, name: string, col
       nftTokenId: `${MAIN_WORLD}-${slime.id}`,
     });
     if (!player.chainReady) {
-      await tx.insert(chainOps).values({ worldId: MAIN_WORLD, tick: world.tick, kind: "player_setup", payload: { type: "player_setup", playerId, starterYocto: toYocto(PLAYER_STARTER_WALLET) } });
+      await tx.insert(chainOps).values({ worldId: MAIN_WORLD, tick: world.tick, kind: "player_setup", payload: { type: "player_setup", playerId, starterYocto: toYocto(starter.purse) } });
     }
     await tx.insert(chainOps).values({
       worldId: MAIN_WORLD,
@@ -56,7 +57,7 @@ export async function hatchForPlayer(db: Db, playerId: string, name: string, col
         name: slime.name,
         traits: { colour: slime.colour, personality: slime.personality, size: slime.size, skills: slime.skills },
         rules: chainRules(slime.rules),
-        starterYocto: toYocto(STARTER_WALLET),
+        starterYocto: toYocto(starter.slime),
       },
     });
     return { result: slime.id, changes: noChanges() };
