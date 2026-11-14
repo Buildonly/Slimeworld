@@ -1,5 +1,6 @@
 import { createRemoteJWKSet, jwtVerify, type JWTPayload } from "jose";
 import { z } from "zod";
+import { serverEnv } from "@/lib/env";
 
 /**
  * Verify Privy tokens with the app's public JWKS. No Privy secret is needed
@@ -10,7 +11,9 @@ const jwksByApp = new Map<string, ReturnType<typeof createRemoteJWKSet>>();
 function jwks(appId: string) {
   let set = jwksByApp.get(appId);
   if (!set) {
-    set = createRemoteJWKSet(new URL(`https://auth.privy.io/api/v1/apps/${encodeURIComponent(appId)}/jwks.json`));
+    const base = serverEnv().PRIVY_AUTH_URL;
+    if (!base) throw new Error("PRIVY_AUTH_URL is not set");
+    set = createRemoteJWKSet(new URL(`${base.replace(/\/$/, "")}/api/v1/apps/${encodeURIComponent(appId)}/jwks.json`));
     jwksByApp.set(appId, set);
   }
   return set;

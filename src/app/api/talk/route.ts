@@ -9,7 +9,8 @@ import { processChainOps } from "@/server/chain-worker";
 import { allow } from "@/server/rate-limit";
 import { currentPlayerId } from "@/server/session";
 import { loadWorld, noChanges, withWorld } from "@/server/world-store";
-import { pitchFor, VOICES } from "@/voice/settings";
+import { pitchFor } from "@/voice/settings";
+import { voicePlan } from "@/voice/voices";
 import { speak } from "@/voice/tts";
 
 const schema = z.object({ slimeId: z.string().regex(/^s[0-9a-z]{1,10}$/), text: z.string().trim().min(1).max(200) });
@@ -41,8 +42,8 @@ export async function POST(req: Request) {
   });
   after(() => processChainOps(db()).catch(() => undefined));
 
-  const voice = VOICES[slime.personality];
-  const hash = await speak(db(), voice.id, reply.say).catch(() => null);
+  const voice = (await voicePlan().catch(() => null))?.voices[slime.personality] ?? null;
+  const hash = voice ? await speak(db(), voice.id, reply.say).catch(() => null) : null;
   return Response.json({
     ok: true,
     say: reply.say,
@@ -50,6 +51,6 @@ export async function POST(req: Request) {
     verified: reply.verified,
     audio: hash ? `/api/voice/${hash}` : null,
     pitch: pitchFor(slime.size),
-    voice: voice.name,
+    voice: voice?.name ?? null,
   });
 }

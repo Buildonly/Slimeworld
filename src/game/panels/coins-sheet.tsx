@@ -9,7 +9,7 @@ import { post, usePoll } from "@/lib/use-poll";
 import { GameSheet } from "./sheet";
 
 type Coin = { id: string; label: string; chain: string; symbol: string };
-type TopUp = { id: number; coin: string; send: string; depositAddress: string; depositMemo: string | null; status: string; coins: string | null; seconds: number };
+type TopUp = { id: number; coin: string; send: string; depositAddress: string; depositMemo: string | null; status: string; coins: string | null; seconds: number | null };
 type Preview = { send: string; receiveNear: string; coins: string; usd: string | null; seconds: number };
 
 const STEPS = [
@@ -17,6 +17,17 @@ const STEPS = [
   { key: "swap", label: "Swapping to NEAR" },
   { key: "done", label: "Coins added" },
 ];
+
+function minutes(seconds: number): string {
+  const m = Math.max(1, Math.round(seconds / 60));
+  return `${m} minute${m === 1 ? "" : "s"}`;
+}
+
+/** Quick gifts: a share of what's in the purse, in whole coins. */
+function giftSteps(purseBits: bigint): number[] {
+  const coins = Number(purseBits / 100n);
+  return [...new Set([Math.floor(coins / 4), Math.floor(coins / 2), coins])].filter((n) => n > 0);
+}
 
 function stepOf(status: string, credited: boolean): number {
   if (credited) return 3;
@@ -70,7 +81,7 @@ function TopUpTracker({ start, onDone }: { start: TopUp; onDone: () => void }) {
       {credited ? (
         <p className="rounded-2xl bg-accent/15 p-3 font-semibold">🎉 🪙 {formatBits(t.coins!)} coins added to your purse!</p>
       ) : (
-        <p className="text-sm text-ink-soft">Usually takes about {Math.max(1, Math.round(t.seconds / 60))} minute{t.seconds > 90 ? "s" : ""} after your deposit lands.</p>
+        <p className="text-sm text-ink-soft">{t.seconds ? `Usually takes about ${minutes(t.seconds)} after your deposit lands.` : "Coins arrive soon after your deposit lands."}</p>
       )}
     </div>
   );
@@ -80,14 +91,15 @@ function TopUpTracker({ start, onDone }: { start: TopUp; onDone: () => void }) {
 export function CoinsSheet({ slimeName, slimeCoins, playerCoins, busy, onGive, onClose, onChanged }: { slimeName: string; slimeCoins: string; playerCoins: string; busy: boolean; onGive: (n: number) => void; onClose: () => void; onChanged: () => void }) {
   const toast = useToast();
   const { data } = usePoll<{ live: boolean; coins: Coin[]; recent: TopUp[] }>("/api/topup", 30_000);
-  const [coinId, setCoinId] = useState("usdc-base");
-  const [amount, setAmount] = useState("5");
+  const [picked, setPicked] = useState<string | null>(null);
+  const coinId = picked ?? data?.coins[0]?.id ?? "";
+  const [amount, setAmount] = useState("");
   const [preview, setPreview] = useState<Preview | string | null>(null);
   const [active, setActive] = useState<TopUp | null>(null);
   const [starting, setStarting] = useState(false);
 
   useEffect(() => {
-    if (!/^\d+(\.\d+)?$/.test(amount)) return;
+    if (!coinId || !/^\d+(\.\d+)?$/.test(amount)) return;
     const t = setTimeout(async () => {
       const r = await post<{ ok: boolean; preview?: Preview; error?: string }>("/api/topup/preview", { coinId, amount });
       setPreview(r.ok && r.preview ? r.preview : (r.error ?? "Prices are unavailable right now."));
@@ -110,9 +122,10 @@ export function CoinsSheet({ slimeName, slimeCoins, playerCoins, busy, onGive, o
         </div>
       </div>
       <p className="mb-2 mt-4 font-semibold">Give {slimeName} coins from your purse</p>
-      <div className="grid grid-cols-4 gap-2">
-        {[10, 25, 50, 100].map((n) => (
-          <Button key={n} tone="coin" disabled={busy || BigInt(playerCoins) < BigInt(n * 100)} onClick={() => onGive(n)}>
+      {giftSteps(BigInt(playerCoins)).length === 0 && <p className="text-sm text-ink-soft">Your purse is empty. Add coins below.</p>}
+      <div className="grid grid-cols-3 gap-2">
+        {giftSteps(BigInt(playerCoins)).map((n) => (
+          <Button key={n} tone="coin" disabled={busy} onClick={() => onGive(n)}>
             {n}
           </Button>
         ))}
@@ -127,21 +140,32 @@ export function CoinsSheet({ slimeName, slimeCoins, playerCoins, busy, onGive, o
             onChanged();
           }}
         />
+      ) : data && !data.live ? (
+        <p className="text-sm text-ink-soft">Top ups open when the town moves to NEAR mainnet.</p>
       ) : (
         <div className="flex flex-col gap-3">
-          <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Pay with">
-            {(data?.coins ?? []).map((c) => (
-              <button key={c.id} role="radio" aria-checked={coinId === c.id} onClick={() => setCoinId(c.id)} className="rounded-full border border-line px-3 py-1.5 text-sm aria-checked:bg-ink aria-checked:text-bg">
-                {c.label}
-              </button>
-            ))}
-          </div>
+          {data && data.coins.length === 0 ? (
+            <p className="text-sm text-danger">Coins to pay with are unavailable right now. Try again soon.</p>
+          ) : (
+            <label className="flex items-center gap-2">
+              <span className="text-sm text-ink-soft">Pay with</span>
+              <select value={coinId} onChange={(e) => setPicked(e.target.value)} className="min-w-0 flex-1 rounded-xl border border-line bg-card px-3 py-2" aria-label="Pay with" disabled={!data}>
+                {!data && <option>Loading…</option>}
+                {(data?.coins ?? []).map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           <label className="flex items-center gap-2">
             <span className="text-sm text-ink-soft">Amount</span>
             <input
               inputMode="decimal"
               value={amount}
               onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, ""))}
+              placeholder="0"
               className="w-28 rounded-xl border border-line bg-card px-3 py-2 text-lg"
               aria-label="Amount to send"
             />
@@ -151,11 +175,10 @@ export function CoinsSheet({ slimeName, slimeCoins, playerCoins, busy, onGive, o
             <p className="text-sm text-danger">{preview}</p>
           ) : preview ? (
             <p className="rounded-2xl bg-bg-soft p-3">
-              You get about <b>🪙 {formatBits(preview.coins)}</b> coins ({preview.receiveNear.slice(0, 6)} NEAR){preview.usd ? ` for ~$${Number(preview.usd).toFixed(2)}` : ""}. Takes about {Math.max(1, Math.round(preview.seconds / 60))} min.
+              You get about <b>🪙 {formatBits(preview.coins)}</b> coins ({preview.receiveNear.slice(0, 6)} NEAR){preview.usd ? ` for ~$${Number(preview.usd).toFixed(2)}` : ""}. Takes about {minutes(preview.seconds)}.
             </p>
           ) : null}
-          {data?.live ? (
-            <Button
+          <Button
               size="lg"
               disabled={starting || typeof preview !== "object" || preview === null}
               onClick={async () => {
@@ -168,9 +191,6 @@ export function CoinsSheet({ slimeName, slimeCoins, playerCoins, busy, onGive, o
             >
               {starting ? "Getting your address…" : "Get my deposit address"}
             </Button>
-          ) : (
-            <p className="text-sm text-ink-soft">Top ups open when the town moves to NEAR mainnet. Prices above are live.</p>
-          )}
           <p className="text-xs text-ink-soft">Swapped by NEAR Intents. If anything goes wrong, the money goes back to your NEAR account.</p>
         </div>
       )}

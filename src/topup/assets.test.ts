@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { parseUnits, TOPUP_COINS } from "./assets";
+import { parseUnits, tokenBook } from "./assets";
+
+const wrapped = { assetId: "nep141:wrapped", decimals: 24, blockchain: "near", symbol: "wNEAR", contractAddress: "wrapped.example" };
 
 describe("top up amounts", () => {
   it("parses decimals into exact base units", () => {
@@ -11,7 +13,16 @@ describe("top up amounts", () => {
   it("rejects junk and too many decimals", () => {
     for (const bad of ["", "-1", "1e3", "1.2.3", "abc", "0.0000001"]) expect(parseUnits(bad, 6)).toBeNull();
   });
-  it("lists USDC on Base first", () => {
-    expect(TOPUP_COINS[0]).toMatchObject({ id: "usdc-base", decimals: 6 });
+});
+
+describe("live token list", () => {
+  it("finds wrapped NEAR and lists every other coin, sorted", () => {
+    const book = tokenBook([{ assetId: "x:usdc-b", decimals: 6, blockchain: "base", symbol: "USDC" }, wrapped, { assetId: "x:btc", decimals: 8, blockchain: "btc", symbol: "BTC" }, { junk: 1 }]);
+    expect(book.destination.contractAddress).toBe("wrapped.example");
+    expect(book.coins.map((c) => c.id)).toEqual(["x:btc", "x:usdc-b"]);
+    expect(book.coins[1]).toMatchObject({ label: "USDC · BASE", decimals: 6 });
+  });
+  it("fails loudly when wrapped NEAR is missing", () => {
+    expect(() => tokenBook([{ assetId: "x", decimals: 6, blockchain: "base", symbol: "USDC" }])).toThrow();
   });
 });

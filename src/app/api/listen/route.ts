@@ -1,13 +1,12 @@
 import { z } from "zod";
 import { db } from "@/db/client";
 import { serverEnv } from "@/lib/env";
-import { NEAR_AI_BASE_URL } from "@/minds/settings";
+import { nearAiUrl } from "@/minds/settings";
 import { fail } from "@/server/http";
 import { allow } from "@/server/rate-limit";
 import { currentPlayerId } from "@/server/session";
 
 const MAX_BYTES = 1_000_000;
-const WHISPER_MODEL = "openai/whisper-large-v3";
 const answerSchema = z.object({ text: z.string().max(1000) });
 
 /**
@@ -22,12 +21,12 @@ export async function POST(req: Request) {
   const audio = form?.get("audio");
   if (!(audio instanceof Blob) || audio.size === 0) return fail(400, "No sound came through.");
   if (audio.size > MAX_BYTES) return fail(413, "That's a long speech! Keep it short.");
-  const key = serverEnv().NEAR_AI_API_KEY;
-  if (!key) return fail(503, "Listening is not set up yet.");
+  const { NEAR_AI_API_KEY: key, NEAR_AI_URL, NEAR_AI_LISTEN_MODEL: model } = serverEnv();
+  if (!key || !NEAR_AI_URL || !model) return fail(503, "Listening is not set up yet.");
   const out = new FormData();
-  out.append("model", WHISPER_MODEL);
+  out.append("model", model);
   out.append("file", audio, "speech.webm");
-  const res = await fetch(`${NEAR_AI_BASE_URL}/audio/transcriptions`, {
+  const res = await fetch(`${nearAiUrl()}/audio/transcriptions`, {
     method: "POST",
     headers: key === "proxy-injected" ? {} : { authorization: `Bearer ${key}` },
     body: out,

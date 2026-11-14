@@ -109,7 +109,7 @@ export function LogScreen() {
       {slime?.chain?.status === "ready" && (
         <p className="text-center text-sm text-ink-soft">
           Money moves are settled on the town contract from{" "}
-          <a className="text-accent underline" href={explorer(home.contracts.network, "address", slime.chain.accountId)} target="_blank" rel="noreferrer">
+          <a className="text-accent underline" href={explorer("address", slime.chain.accountId)} target="_blank" rel="noreferrer">
             {slime.name}&apos;s own account
           </a>
           .

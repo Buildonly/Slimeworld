@@ -10,7 +10,7 @@ import type { Slime, World } from "@/economy/types";
 import { extractJson, talkAnswerSchema, type TalkAnswer } from "./answers";
 import { chatSigned, type MindProof } from "./client";
 import { fill, loadPrompt, playerText } from "./prompts";
-import { DEFAULT_MIND_MODEL, MIND_MAX_TOKENS } from "./settings";
+import { MIND_MAX_TOKENS, mindModel } from "./settings";
 
 export type TalkReply = TalkAnswer & { thought: boolean; verified: boolean | null; proof: MindProof | Record<string, unknown> | null };
 
@@ -38,8 +38,8 @@ export function cannedReply(slime: Slime): TalkReply | null {
 export async function talk(world: World, slime: Slime, said: string, opts: { model?: string; apiKey?: string; fetcher?: typeof fetch } = {}): Promise<TalkReply> {
   const canned = cannedReply(slime);
   if (canned) return canned;
-  const model = opts.model ?? DEFAULT_MIND_MODEL;
   try {
+    const model = opts.model ?? mindModel();
     const answer = await chatSigned({ model, system: talkPrompt(world, slime), user: playerText(said), maxTokens: MIND_MAX_TOKENS, apiKey: opts.apiKey, fetcher: opts.fetcher });
     const parsed = talkAnswerSchema.safeParse(extractJson(answer.content));
     if (!parsed.success) return { say: "Bloop? Say that again?", feeling: "okay", thought: true, verified: null, proof: { fallback: "Answer did not match the schema" } };

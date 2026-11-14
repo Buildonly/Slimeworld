@@ -8,7 +8,7 @@ import type { Shop, World } from "@/economy/types";
 import { extractJson, shopAnswerSchema } from "./answers";
 import { chatSigned } from "./client";
 import { fill, loadPrompt } from "./prompts";
-import { DEFAULT_MIND_MODEL, MIND_MAX_TOKENS } from "./settings";
+import { MIND_MAX_TOKENS } from "./settings";
 
 export function shopPrompt(world: World, shop: Shop): string {
   const title = (id: string) => ITEM_BY_ID.get(id)?.title ?? id;
@@ -30,7 +30,7 @@ export function shopPrompt(world: World, shop: Shop): string {
   });
 }
 
-export function nearAiShopMind(model = DEFAULT_MIND_MODEL, apiKey?: string, fetcher?: typeof fetch): ShopMind {
+export function nearAiShopMind(model: string, apiKey?: string, fetcher?: typeof fetch): ShopMind {
   return {
     name: "near-ai",
     async decide(world, shop): Promise<ShopStrategy> {

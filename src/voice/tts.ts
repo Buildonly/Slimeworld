@@ -8,7 +8,8 @@ import { eq } from "drizzle-orm";
 import type { Db } from "@/db/client";
 import { voiceLines } from "@/db/schema";
 import { serverEnv } from "@/lib/env";
-import { ELEVENLABS_BASE_URL, MAX_SPOKEN_CHARS, TTS_FORMAT, TTS_MODEL } from "./settings";
+import { elevenLabsUrl, MAX_SPOKEN_CHARS, TTS_FORMAT } from "./settings";
+import { voicePlan } from "./voices";
 
 export function lineHash(voiceId: string, text: string): string {
   return createHash("sha256").update(`${voiceId}\n${text}`).digest("hex").slice(0, 40);
@@ -22,11 +23,13 @@ export async function speak(db: Db, voiceId: string, raw: string): Promise<strin
   const [hit] = await db.select({ hash: voiceLines.hash }).from(voiceLines).where(eq(voiceLines.hash, hash));
   if (hit) return hash;
   const key = serverEnv().ELEVENLABS_API_KEY;
-  if (!key) return null;
-  const res = await fetch(`${ELEVENLABS_BASE_URL}/v1/text-to-speech/${encodeURIComponent(voiceId)}?output_format=${TTS_FORMAT}`, {
+  const base = elevenLabsUrl();
+  const plan = await voicePlan();
+  if (!key || !base || !plan) return null;
+  const res = await fetch(`${base}/v1/text-to-speech/${encodeURIComponent(voiceId)}?output_format=${TTS_FORMAT}`, {
     method: "POST",
     headers: { "content-type": "application/json", accept: "audio/mpeg", ...(key === "proxy-injected" ? {} : { "xi-api-key": key }) },
-    body: JSON.stringify({ text, model_id: TTS_MODEL, voice_settings: { stability: 0.45, similarity_boost: 0.75, style: 0.35, speed: 1.05 } }),
+    body: JSON.stringify({ text, model_id: plan.model, voice_settings: { stability: 0.45, similarity_boost: 0.75, style: 0.35, speed: 1.05 } }),
     signal: AbortSignal.timeout(15_000),
   });
   if (!res.ok) return null;

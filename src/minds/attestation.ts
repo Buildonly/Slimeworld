@@ -9,7 +9,7 @@
 import { getCollateralAndVerify } from "@phala/dcap-qvl";
 import { randomBytes } from "node:crypto";
 import { z } from "zod";
-import { ATTESTATION_TTL_MS, NEAR_AI_BASE_URL } from "./settings";
+import { ATTESTATION_TTL_MS, nearAiUrl } from "./settings";
 
 const reportSchema = z.object({
   model_attestations: z.array(
@@ -57,7 +57,7 @@ export async function attestModel(model: string, fetcher: typeof fetch = fetch):
   const hit = cache.get(model);
   if (hit && Date.now() - hit.verifiedAt < ATTESTATION_TTL_MS) return hit;
   const nonce = randomBytes(32).toString("hex");
-  const url = `${NEAR_AI_BASE_URL}/attestation/report?model=${encodeURIComponent(model)}&provider=near&signing_algo=ecdsa&nonce=${nonce}`;
+  const url = `${nearAiUrl()}/attestation/report?model=${encodeURIComponent(model)}&provider=near&signing_algo=ecdsa&nonce=${nonce}`;
   const res = await fetcher(url, { headers: { "x-no-aliasing": "true" } });
   if (!res.ok) throw new Error(`Attestation report: HTTP ${res.status}`);
   const report = reportSchema.parse(await res.json());

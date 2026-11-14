@@ -31,7 +31,8 @@ export const MOOD: Record<string, { label: string; emoji: string; tone: string }
   lonely: { label: "Lonely", emoji: "🥺", tone: "bg-[#c9b8ff]/40 text-ink" },
 };
 
-export function explorer(network: string, kind: "address" | "txns", id: string): string {
-  const host = network === "mainnet" ? "nearblocks.io" : "testnet.nearblocks.io";
-  return `https://${host}/${kind}/${id}`;
+/** Link to an account or transaction on the explorer set in NEXT_PUBLIC_NEAR_EXPLORER_URL; none if unset. */
+export function explorer(kind: "address" | "txns", id: string): string | undefined {
+  const base = process.env.NEXT_PUBLIC_NEAR_EXPLORER_URL;
+  return base ? `${base.replace(/\/$/, "")}/${kind}/${id}` : undefined;
 }

@@ -13,7 +13,7 @@ import { isLonely } from "@/economy/slimes";
 import { extractJson, slimeAnswerSchema } from "./answers";
 import { chatSigned } from "./client";
 import { fill, loadPrompt, playerText } from "./prompts";
-import { DEFAULT_MIND_MODEL, MIND_MAX_TOKENS } from "./settings";
+import { MIND_MAX_TOKENS } from "./settings";
 
 export function slimePrompt(ctx: MindContext): { system: string; user: string } {
   const { slime, options, world } = ctx;
@@ -52,7 +52,7 @@ export function slimePrompt(ctx: MindContext): { system: string; user: string } 
   return { system, user };
 }
 
-export function nearAiSlimeMind(model = DEFAULT_MIND_MODEL, apiKey?: string, fetcher?: typeof fetch): Mind {
+export function nearAiSlimeMind(model: string, apiKey?: string, fetcher?: typeof fetch): Mind {
   return {
     name: "near-ai",
     async decide(ctx: MindContext): Promise<MindChoice> {

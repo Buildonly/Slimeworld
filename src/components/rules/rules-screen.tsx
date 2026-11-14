@@ -28,7 +28,7 @@ type OnChain = { onChain: { dailyLimit: string; savingsTarget: string; allowed: 
 
 const coinsOf = (bits: string) => Number(BigInt(bits) / 100n);
 
-export function RulesForm({ slime, network, onSaved }: { slime: SlimeDto; network: string; onSaved: () => void }) {
+export function RulesForm({ slime, onSaved }: { slime: SlimeDto; onSaved: () => void }) {
   const toast = useToast();
   const [limit, setLimit] = useState(coinsOf(slime.rules.dailyLimit));
   const [savings, setSavings] = useState(coinsOf(slime.rules.savingsTarget));
@@ -112,7 +112,7 @@ export function RulesForm({ slime, network, onSaved }: { slime: SlimeDto; networ
           <p className="text-ink-soft">{chain.status === "ready" ? "Not found on chain yet." : "Setting up on chain…"}</p>
         )}
         {chain?.town && (
-          <a className="text-accent underline" href={explorer(network, "address", chain.town)} target="_blank" rel="noreferrer">
+          <a className="text-accent underline" href={explorer("address", chain.town)} target="_blank" rel="noreferrer">
             View the town contract
           </a>
         )}
@@ -134,7 +134,7 @@ export function RulesScreen() {
         <h1 className="text-2xl font-semibold">{slime.name}&apos;s rules</h1>
         <p className="text-ink-soft">{slime.name} acts alone inside these rules, and tells you why in its log.</p>
       </div>
-      <RulesForm key={slime.id} slime={slime} network={home.contracts.network} onSaved={refresh} />
+      <RulesForm key={slime.id} slime={slime} onSaved={refresh} />
     </div>
   );
 }

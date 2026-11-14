@@ -1,6 +1,8 @@
 import { KeyPair } from "near-api-js";
-import { PLAYER_ACCOUNT_FUNDING_YOCTO } from "@/economy/config";
-import { gameAccount } from "./client";
+import { gameAccount, livePrices } from "./client";
+import { contractIds } from "./contracts";
+import { accessKeyBytes, storageCost } from "./costs";
+import { PLAYER_KEY_METHODS } from "./town-chain";
 
 /**
  * Account ids for players are short sub accounts of the game account:
@@ -16,18 +18,17 @@ export type NewAccount = { accountId: string; privateKey: string };
 
 /**
  * Create the player's NEAR account on chain, funded by the game so the
- * player never sees gas or a seed phrase. Returns the new key; the caller
- * must store it encrypted.
+ * player never sees gas or a seed phrase. It gets exactly the storage it
+ * will use at today's price: the account, its own key and its town-only key.
+ * Returns the new key; the caller must store it encrypted.
  */
 export async function createPlayerAccount(playerId: string): Promise<NewAccount> {
   const game = gameAccount();
   if (!game) throw new Error("NEAR game account is not configured");
   const accountId = playerAccountId(playerId, game.accountId);
   const keyPair = KeyPair.fromRandom("ed25519");
-  await game.createAccount({
-    newAccountId: accountId,
-    publicKey: keyPair.getPublicKey(),
-    nearToTransfer: PLAYER_ACCOUNT_FUNDING_YOCTO,
-  });
+  const p = await livePrices();
+  const keys = accessKeyBytes(p) + accessKeyBytes(p, { receiverId: contractIds(game.accountId).town, methods: PLAYER_KEY_METHODS });
+  await game.createAccount({ newAccountId: accountId, publicKey: keyPair.getPublicKey(), nearToTransfer: storageCost(p, keys) });
   return { accountId, privateKey: keyPair.toString() };
 }

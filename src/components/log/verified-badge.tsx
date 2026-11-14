@@ -31,9 +31,6 @@ export function VerifiedBadge({ verified, source, proof }: { verified: boolean |
           {proof?.signingAddress ? <span className="block break-all">Signer: {String(proof.signingAddress)}</span> : null}
           {att?.tcbStatus ? <span className="block">Intel TDX: {att.tcbStatus}</span> : null}
           {proof?.chatId ? <span className="block break-all text-ink-soft">Answer id: {String(proof.chatId)}</span> : null}
-          <a className="mt-2 inline-block text-accent underline" href="https://cloud.near.ai/verify" target="_blank" rel="noreferrer">
-            How NEAR AI verification works
-          </a>
         </span>
       )}
     </span>

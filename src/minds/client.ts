@@ -6,7 +6,7 @@
  */
 import { z } from "zod";
 import { attestModel, type Attestation } from "./attestation";
-import { NEAR_AI_BASE_URL, MIND_TIMEOUT_MS } from "./settings";
+import { MIND_TIMEOUT_MS, nearAiUrl } from "./settings";
 import { checkSignature, sha256Hex } from "./signature";
 
 const completionSchema = z.object({
@@ -77,7 +77,7 @@ export async function chatSigned(args: {
     chat_template_kwargs: { enable_thinking: false },
   });
   const request = new TextEncoder().encode(body);
-  const res = await fetcher(`${NEAR_AI_BASE_URL}/chat/completions`, {
+  const res = await fetcher(`${nearAiUrl()}/chat/completions`, {
     method: "POST",
     headers: headers(args.apiKey),
     body: request,
@@ -104,7 +104,7 @@ export async function chatSigned(args: {
 
   // The signature can take a moment to appear; retry briefly on 404.
   for (let attempt = 0; attempt < 4; attempt++) {
-    const sres = await fetcher(`${NEAR_AI_BASE_URL}/signature/${encodeURIComponent(completion.id)}?model=${encodeURIComponent(args.model)}&signing_algo=ecdsa`, {
+    const sres = await fetcher(`${nearAiUrl()}/signature/${encodeURIComponent(completion.id)}?model=${encodeURIComponent(args.model)}&signing_algo=ecdsa`, {
       headers: headers(args.apiKey),
     });
     if (sres.status === 404) {

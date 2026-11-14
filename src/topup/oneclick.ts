@@ -5,9 +5,9 @@
  */
 import { z } from "zod";
 import { serverEnv } from "@/lib/env";
-import { DESTINATION_ASSET } from "./assets";
+import { liveTokens } from "./assets";
+import { oneClickUrl } from "./oneclick-url";
 
-export const ONECLICK_BASE_URL = "https://1click.chaindefuser.com";
 const SLIPPAGE_BPS = 100;
 const DEADLINE_MS = 60 * 60 * 1000;
 
@@ -55,11 +55,12 @@ function headers(): Record<string, string> {
 
 /**
  * Ask 1Click to swap `amount` (base units) of `originAsset` into NEAR for
- * `recipient` (a NEAR mainnet account, registered on wrap.near). `dry: true`
+ * `recipient` (a NEAR mainnet account, registered on wrapped NEAR). `dry: true`
  * just prices it.
  */
 export async function quote(args: { originAsset: string; amount: bigint; recipient: string; dry: boolean; fetcher?: typeof fetch }): Promise<Quote> {
-  const res = await (args.fetcher ?? fetch)(`${ONECLICK_BASE_URL}/v0/quote`, {
+  const { destination } = await liveTokens(args.fetcher);
+  const res = await (args.fetcher ?? fetch)(`${oneClickUrl()}/v0/quote`, {
     method: "POST",
     headers: headers(),
     body: JSON.stringify({
@@ -68,7 +69,7 @@ export async function quote(args: { originAsset: string; amount: bigint; recipie
       slippageTolerance: SLIPPAGE_BPS,
       originAsset: args.originAsset,
       depositType: "ORIGIN_CHAIN",
-      destinationAsset: DESTINATION_ASSET,
+      destinationAsset: destination.assetId,
       amount: args.amount.toString(),
       // If anything goes wrong the money comes back to the player's own NEAR
       // account (as an Intents balance), so nobody has to type an address.
@@ -77,7 +78,7 @@ export async function quote(args: { originAsset: string; amount: bigint; recipie
       recipient: args.recipient,
       recipientType: "DESTINATION_CHAIN",
       deadline: new Date(Date.now() + DEADLINE_MS).toISOString(),
-      referral: "slimeworld",
+      ...(serverEnv().ONECLICK_REFERRAL ? { referral: serverEnv().ONECLICK_REFERRAL } : {}),
       quoteWaitingTimeMs: 3000,
     }),
     signal: AbortSignal.timeout(20_000),
@@ -91,7 +92,7 @@ export async function quote(args: { originAsset: string; amount: bigint; recipie
 }
 
 export async function swapStatus(depositAddress: string, fetcher: typeof fetch = fetch): Promise<SwapStatus> {
-  const res = await fetcher(`${ONECLICK_BASE_URL}/v0/status?depositAddress=${encodeURIComponent(depositAddress)}`, { headers: headers(), signal: AbortSignal.timeout(15_000) });
+  const res = await fetcher(`${oneClickUrl()}/v0/status?depositAddress=${encodeURIComponent(depositAddress)}`, { headers: headers(), signal: AbortSignal.timeout(15_000) });
   if (!res.ok) throw new Error(`1Click: HTTP ${res.status}`);
   return statusSchema.parse(await res.json());
 }

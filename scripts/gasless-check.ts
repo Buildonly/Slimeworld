@@ -11,6 +11,7 @@ import { db } from "@/db/client";
 import { chainOps, players, slimeAccounts } from "@/db/schema";
 import { YOCTO_PER_BIT } from "@/economy/config";
 import { formatCoins } from "@/economy/money";
+import { explorer } from "@/lib/format";
 import { townBalance } from "@/near/town-chain";
 import { processChainOps } from "@/server/chain-worker";
 import { advanceTown, loadWorld } from "@/server/town";
@@ -67,7 +68,7 @@ async function main() {
   for (const o of mine) {
     const p = o.payload as { type: string; method?: string; op?: { kind: unknown; memo: string } };
     const what = p.type === "settle" ? `settle ${JSON.stringify(p.op?.kind)} ${p.op?.memo}` : p.type === "meta" ? `meta ${p.method} (player-signed, relayed)` : p.type;
-    console.log(`  ${o.status.padEnd(8)} ${what.padEnd(48)} https://testnet.nearblocks.io/txns/${o.txHash}`);
+    console.log(`  ${o.status.padEnd(8)} ${what.padEnd(48)} ${explorer("txns", o.txHash ?? "") ?? o.txHash}`);
   }
 
   const world = await loadWorld(db());

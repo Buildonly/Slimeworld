@@ -1,22 +1,56 @@
 /**
- * Coins players can top up with, from any chain, through NEAR Intents 1Click.
- * Asset ids come from GET https://1click.chaindefuser.com/v0/tokens.
+ * Coins players can top up with: whatever NEAR Intents 1Click supports right
+ * now, read live from its token list (cached for a few minutes). Nothing is
+ * written down here; the destination is 1Click's wrapped NEAR on NEAR.
  */
+import { z } from "zod";
+import { oneClickUrl } from "./oneclick-url";
+
+const tokenSchema = z.object({
+  assetId: z.string().min(1),
+  decimals: z.number().int().min(0).max(36),
+  blockchain: z.string().min(1),
+  symbol: z.string().min(1),
+  price: z.number().optional(),
+  contractAddress: z.string().optional(),
+});
+export type Token = z.infer<typeof tokenSchema>;
 export type TopUpCoin = { id: string; label: string; chain: string; symbol: string; assetId: string; decimals: number };
+export type TokenBook = { coins: TopUpCoin[]; destination: Token };
 
-export const TOPUP_COINS: readonly TopUpCoin[] = [
-  { id: "usdc-base", label: "USDC on Base", chain: "Base", symbol: "USDC", assetId: "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near", decimals: 6 },
-  { id: "usdc-arb", label: "USDC on Arbitrum", chain: "Arbitrum", symbol: "USDC", assetId: "nep141:arb-0xaf88d065e77c8cc2239327c5edb3a432268e5831.omft.near", decimals: 6 },
-  { id: "usdc-eth", label: "USDC on Ethereum", chain: "Ethereum", symbol: "USDC", assetId: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near", decimals: 6 },
-  { id: "usdc-near", label: "USDC on NEAR", chain: "NEAR", symbol: "USDC", assetId: "nep141:17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1", decimals: 6 },
-  { id: "eth-base", label: "ETH on Base", chain: "Base", symbol: "ETH", assetId: "nep141:base.omft.near", decimals: 18 },
-  { id: "eth", label: "ETH", chain: "Ethereum", symbol: "ETH", assetId: "nep141:eth.omft.near", decimals: 18 },
-  { id: "sol", label: "SOL", chain: "Solana", symbol: "SOL", assetId: "nep141:sol.omft.near", decimals: 9 },
-  { id: "btc", label: "BTC", chain: "Bitcoin", symbol: "BTC", assetId: "nep141:btc.omft.near", decimals: 8 },
-];
+/** 1Click's own name for wrapped NEAR on the NEAR chain: the token every top up becomes. */
+const WRAPPED_NEAR = { blockchain: "near", symbol: "wNEAR" } as const;
+const CACHE_MS = 5 * 60 * 1000;
 
-/** What lands on NEAR: wrapped NEAR, unwrapped into the player's account. */
-export const DESTINATION_ASSET = "nep141:wrap.near";
+/** Turn 1Click's token list into the coins a player can pick, plus the wrapped NEAR destination. */
+export function tokenBook(raw: unknown): TokenBook {
+  const tokens = z.array(z.unknown()).parse(raw).flatMap((t) => {
+    const r = tokenSchema.safeParse(t);
+    return r.success ? [r.data] : []; // drop anything that doesn't match
+  });
+  const destination = tokens.find((t) => t.blockchain === WRAPPED_NEAR.blockchain && t.symbol === WRAPPED_NEAR.symbol && t.contractAddress);
+  if (!destination) throw new Error("1Click lists no wrapped NEAR");
+  const coins = tokens
+    .filter((t) => t.assetId !== destination.assetId)
+    .map((t) => ({ id: t.assetId, label: `${t.symbol} · ${t.blockchain.toUpperCase()}`, chain: t.blockchain, symbol: t.symbol, assetId: t.assetId, decimals: t.decimals }))
+    .sort((a, b) => a.symbol.localeCompare(b.symbol) || a.chain.localeCompare(b.chain));
+  return { coins, destination };
+}
+
+let cache: { at: number; book: TokenBook } | undefined;
+
+export async function liveTokens(fetcher: typeof fetch = fetch): Promise<TokenBook> {
+  if (cache && Date.now() - cache.at < CACHE_MS) return cache.book;
+  const res = await fetcher(`${oneClickUrl()}/v0/tokens`, { signal: AbortSignal.timeout(15_000) });
+  if (!res.ok) throw new Error(`1Click: HTTP ${res.status}`);
+  cache = { at: Date.now(), book: tokenBook(await res.json()) };
+  return cache.book;
+}
+
+/** The wrapped NEAR contract on NEAR, as 1Click reports it. */
+export async function wrappedNearContract(): Promise<string> {
+  return (await liveTokens()).destination.contractAddress!;
+}
 
 /** "12.5" with 6 decimals -> 12500000n. Rejects anything that isn't a plain decimal. Never uses floats. */
 export function parseUnits(amount: string, decimals: number): bigint | null {

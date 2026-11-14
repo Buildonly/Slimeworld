@@ -12,13 +12,14 @@ import { formatCoins } from "@/economy/money";
 import { defaultMinds, runTick } from "@/economy/tick";
 import type { Decision } from "@/economy/types";
 import { createTown } from "@/economy/world";
+import { mindModel } from "@/minds/settings";
 import { nearAiSlimeMind } from "@/minds/slime-mind";
 
 async function main() {
   const world = createTown(42, 30);
   const star = Object.values(world.slimes)[0]!;
   star.name = "Blub";
-  const ai = nearAiSlimeMind(undefined, process.env.NEAR_AI_API_KEY);
+  const ai = nearAiSlimeMind(mindModel(), process.env.NEAR_AI_API_KEY);
   // Only Blub thinks on NEAR AI; the rest of town uses the free mind.
   const mind: Mind = { name: "mixed", decide: (ctx) => (ctx.slime.id === star.id ? ai.decide(ctx) : heuristicMind.decide(ctx)) };
   const found: Decision[] = [];

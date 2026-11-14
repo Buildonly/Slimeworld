@@ -8,16 +8,18 @@ import "dotenv/config";
 import { Account, JsonRpcProvider, KeyPair, teraToGas, type KeyPairString } from "near-api-js";
 import { randomBytes } from "node:crypto";
 import { z } from "zod";
-import { YOCTO_PER_COIN } from "../src/economy/config";
+import { ITEM_BY_ID, STARTER_COINS, YOCTO_PER_BIT, YOCTO_PER_COIN } from "../src/economy/config";
 import { contractIds } from "../src/near/contracts";
+import { accessKeyBytes, chainPrices, storageCost } from "../src/near/costs";
+import { required } from "./script-env";
 
-const coins = (n: number) => (BigInt(n) * YOCTO_PER_COIN).toString();
+const yocto = (bits: bigint) => (bits * YOCTO_PER_BIT).toString();
 
 async function main() {
   const [playerId] = z.tuple([z.string().min(2)]).parse(process.argv.slice(2));
   const gameId = z.string().parse(process.env.NEAR_GAME_ACCOUNT);
   const key = z.string().parse(process.env.NEAR_GAME_PRIVATE_KEY) as KeyPairString;
-  const provider = new JsonRpcProvider({ url: process.env.NEAR_RPC_URL ?? "https://test.rpc.fastnear.com" });
+  const provider = new JsonRpcProvider({ url: required("NEAR_RPC_URL") });
   const game = new Account(gameId, provider, key);
   const ids = contractIds(gameId);
   const gas = teraToGas("50");
@@ -26,9 +28,15 @@ async function main() {
   const keeperId = `k-bakery-${tag}.${gameId}`;
   const publicKey = KeyPair.fromString(key).getPublicKey();
 
+  const prices = await chainPrices(provider);
   for (const id of [slimeId, keeperId]) {
-    await game.createAccount({ newAccountId: id, publicKey, nearToTransfer: 10n ** 22n });
+    await game.createAccount({ newAccountId: id, publicKey, nearToTransfer: storageCost(prices, accessKeyBytes(prices)) });
   }
+  // Amounts come from the economy config: the starter wallet, and real item prices.
+  const wallet = STARTER_COINS.testnet.slime;
+  const berryPrice = ITEM_BY_ID.get("berries")!.basePrice;
+  const hat = [...ITEM_BY_ID.values()].find((i) => i.category === "Hat")!.basePrice;
+  const dailyLimit = wallet / 2n;
   console.log(`Slime account: ${slimeId}`);
 
   await game.callFunction({
@@ -66,20 +74,20 @@ async function main() {
   await game.callFunction({
     contractId: ids.town,
     methodName: "register_slime",
-    args: { slime_id: slimeId, owner_id: playerId, rules: { daily_limit: coins(100), allowed: ["Food"], savings_target: coins(50) } },
+    args: { slime_id: slimeId, owner_id: playerId, rules: { daily_limit: yocto(dailyLimit), allowed: ["Food"], savings_target: "0" } },
     gas,
   });
   await game.callFunction({ contractId: ids.town, methodName: "open_shop", args: { shop_id: `bakery-${tag}`, keeper_id: keeperId }, gas });
-  await game.callFunction({ contractId: ids.town, methodName: "deposit", args: { account_id: slimeId }, deposit: coins(200), gas });
+  await game.callFunction({ contractId: ids.town, methodName: "deposit", args: { account_id: slimeId }, deposit: BigInt(yocto(wallet)), gas });
 
   const results = await game.callFunction<boolean[]>({
     contractId: ids.town,
     methodName: "settle_batch",
     args: {
       ops: [
-        { from: slimeId, to: keeperId, amount: coins(8), kind: { Spend: { category: "Food", emergency: false } }, memo: "berries" },
-        { from: slimeId, to: keeperId, amount: coins(60), kind: { Spend: { category: "Hat", emergency: false } }, memo: "party hat" },
-        { from: slimeId, to: keeperId, amount: coins(150), kind: { Spend: { category: "Food", emergency: false } }, memo: "feast" },
+        { from: slimeId, to: keeperId, amount: yocto(berryPrice), kind: { Spend: { category: "Food", emergency: false } }, memo: "berries" },
+        { from: slimeId, to: keeperId, amount: yocto(hat), kind: { Spend: { category: "Hat", emergency: false } }, memo: "party hat" },
+        { from: slimeId, to: keeperId, amount: yocto(dailyLimit), kind: { Spend: { category: "Food", emergency: false } }, memo: "feast" },
       ],
     },
     gas,

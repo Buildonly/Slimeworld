@@ -37,7 +37,7 @@ function Town() {
   return data ? <WorldPanels world={data} /> : <Loading label="Asking around town…" />;
 }
 
-export function MenuSheet({ slime, network, onClose, onSaved }: { slime: SlimeDto; network: string; onClose: () => void; onSaved: () => void }) {
+export function MenuSheet({ slime, onClose, onSaved }: { slime: SlimeDto; onClose: () => void; onSaved: () => void }) {
   const [tab, setTab] = useState<Tab>("Journal");
   const router = useRouter();
   return (
@@ -55,7 +55,7 @@ export function MenuSheet({ slime, network, onClose, onSaved }: { slime: SlimeDt
           <Journal slime={slime} />
         </>
       )}
-      {tab === "Rules" && <RulesForm slime={slime} network={network} onSaved={onSaved} />}
+      {tab === "Rules" && <RulesForm slime={slime} onSaved={onSaved} />}
       {tab === "Market" && <MarketScreen signedIn />}
       {tab === "Town" && <Town />}
       {tab === "More" && (
@@ -68,7 +68,7 @@ export function MenuSheet({ slime, network, onClose, onSaved }: { slime: SlimeDt
             <FastForward size={18} /> Watch the town a week ahead
           </Link>
           {slime.chain?.status === "ready" && (
-            <a className="rounded-2xl bg-bg-soft p-3" href={explorer(network, "address", slime.chain.accountId)} target="_blank" rel="noreferrer">
+            <a className="rounded-2xl bg-bg-soft p-3" href={explorer("address", slime.chain.accountId)} target="_blank" rel="noreferrer">
               🔗 See {slime.name}&apos;s own wallet on NEAR
             </a>
           )}

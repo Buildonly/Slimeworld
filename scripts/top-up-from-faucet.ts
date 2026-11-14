@@ -3,20 +3,21 @@
  * faucet account and deletes it straight away with the game account as the
  * beneficiary, so its whole balance moves to the game.
  *
- *   pnpm tsx scripts/top-up-from-faucet.ts
+ *   NEAR_FAUCET_URL=<faucet> pnpm tsx scripts/top-up-from-faucet.ts
  */
 import "dotenv/config";
 import { Account, JsonRpcProvider, KeyPair, type KeyPairString } from "near-api-js";
 import { randomBytes } from "node:crypto";
+import { nearText, required } from "./script-env";
 
 async function main() {
   if (process.env.NEAR_NETWORK !== "testnet") throw new Error("Testnet only");
-  const game = process.env.NEAR_GAME_ACCOUNT;
-  if (!game) throw new Error("NEAR_GAME_ACCOUNT is not set");
-  const provider = new JsonRpcProvider({ url: process.env.NEAR_RPC_URL ?? "https://test.rpc.fastnear.com" });
-  const id = `slimeworld-tmp-${randomBytes(4).toString("hex")}.testnet`;
+  const game = required("NEAR_GAME_ACCOUNT");
+  const provider = new JsonRpcProvider({ url: required("NEAR_RPC_URL") });
+  // A throwaway name under the same top-level account as the game.
+  const id = `tmp-${randomBytes(6).toString("hex")}.${game.split(".").at(-1)}`;
   const keyPair = KeyPair.fromRandom("ed25519");
-  const res = await fetch("https://helper.nearprotocol.com/account", {
+  const res = await fetch(required("NEAR_FAUCET_URL"), {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ newAccountId: id, newAccountPublicKey: keyPair.getPublicKey().toString() }),
@@ -27,7 +28,7 @@ async function main() {
   await tmp.deleteAccount(game);
   await new Promise((r) => setTimeout(r, 3000));
   const after = await new Account(game, provider).getBalance();
-  console.log(`Moved faucet funds to ${game}. Balance now ${(Number(after / 10n ** 21n) / 1000).toFixed(3)} NEAR.`);
+  console.log(`Moved faucet funds to ${game}. Balance now ${nearText(after)} NEAR.`);
 }
 
 main().catch((err: unknown) => {
