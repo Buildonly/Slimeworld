@@ -35,6 +35,8 @@ export const worlds = pgTable("worlds", {
   /** Serialized World (src/economy/serialize.ts keeps bigints exact). */
   state: jsonb("state").notNull(),
   fastForwardUntil: integer("fast_forward_until"),
+  /** When the last tick ran. Hosts without a ticker (Vercel) catch up from here. */
+  tickedAt: timestamp("ticked_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

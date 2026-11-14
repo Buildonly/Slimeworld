@@ -26,7 +26,8 @@
     "check:voice": "tsx --tsconfig tsconfig.json scripts/voice-check.ts",
     "chain:cost": "tsx --tsconfig tsconfig.json scripts/chain-cost.ts",
     "treasury:key": "tsx scripts/treasury-key.ts",
-    "proofs": "tsx --tsconfig tsconfig.json scripts/cheat-proofs.ts"
+    "proofs": "tsx --tsconfig tsconfig.json scripts/cheat-proofs.ts",
+    "vercel-build": "pnpm db:migrate && next build"
   },
   "packageManager": "pnpm@10.28.0",
   "dependencies": {

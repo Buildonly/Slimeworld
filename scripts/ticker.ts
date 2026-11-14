@@ -4,7 +4,10 @@
  *   pnpm ticker --fast     fast forward (1 game day per 10 seconds)
  */
 import "dotenv/config";
+import { eq } from "drizzle-orm";
 import { db } from "@/db/client";
+import { worlds } from "@/db/schema";
+import { MAIN_WORLD } from "@/server/world-store";
 import { TICK_SECONDS_FAST, TICK_SECONDS_NORMAL } from "@/economy/config";
 import { formatCoins } from "@/economy/money";
 import { liveMinds } from "@/minds/live-minds";
@@ -22,6 +25,8 @@ async function main() {
   while (running) {
     const started = Date.now();
     const world = await advanceTown(db(), 1, fast ? undefined : liveMinds());
+    // Tell request-driven catch-up this tick is done, so the two never double up.
+    if (world) await db().update(worlds).set({ tickedAt: new Date() }).where(eq(worlds.id, MAIN_WORLD));
     if (world) {
       const open = Object.values(world.shops).filter((s) => s.open).length;
       const coins = Object.values(world.slimes).reduce((a, s) => a + s.wallet, 0n);

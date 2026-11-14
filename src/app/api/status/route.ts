@@ -1,4 +1,6 @@
+import { after } from "next/server";
 import { db } from "@/db/client";
+import { catchUp } from "@/server/catch-up";
 import { serverEnv } from "@/lib/env";
 import { gameAccount } from "@/near/client";
 import { contractIds } from "@/near/contracts";
@@ -10,6 +12,8 @@ export const dynamic = "force-dynamic";
 
 /** Small, cheap status for the header: the town clock and the viewer's coins. */
 export async function GET() {
+  // Everyone's header polls this, so the town keeps ticking without a server process.
+  after(() => catchUp(db()).catch(() => undefined));
   const world = await loadWorld(db());
   const id = await currentPlayerId();
   const player = id ? world.players[id] : undefined;

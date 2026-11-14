@@ -46,6 +46,8 @@ export const TICKS_PER_DAY = 24;
 /** Real seconds per tick: normal play and fast forward (1 day per 10 seconds). */
 export const TICK_SECONDS_NORMAL = 60;
 export const TICK_SECONDS_FAST = 10 / TICKS_PER_DAY;
+/** Most ticks one catch-up runs when the town wakes after a quiet spell; the rest follow on the next visit. */
+export const CATCH_UP_TICKS_PER_CALL = 24;
 /**
  * The town contract counts spending per real day; the game per game day.
  * On chain, an owner's daily limit is registered as limit x game days per
